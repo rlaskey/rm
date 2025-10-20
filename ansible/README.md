@@ -1,5 +1,5 @@
 # Ansible
 
 ```sh
-ansible-playbook -v -i inventory.ini packages.yml
+ansible-playbook -v -i inventory.ini site.yml
 ```

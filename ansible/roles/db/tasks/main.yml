@@ -1,0 +1,7 @@
+---
+- become: yes
+  community.general.pacman:
+    name:
+    - postgresql
+    state: present
+    update_cache: yes

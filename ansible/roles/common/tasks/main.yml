@@ -1,0 +1,13 @@
+---
+- become: yes
+  community.general.pacman:
+    name:
+    - dnsutils
+    - libheif
+    - libvips
+    - nmap
+    - postfix
+    - ripgrep
+    - tmux
+    state: present
+    update_cache: yes
