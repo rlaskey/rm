@@ -27,7 +27,7 @@ something simple.
 
 ```sh
 pacman -Rdd linux-firmware # weird thing re: arch upgrade
-pacman -Syu # upgrade packages
+pacman -Sy --needed archlinux-keyring && pacman -Su # upgrade packages
 pacman -Sy git ansible # we'll at least need this
 useradd -m -G wheel user
 EDITOR=nano visudo
