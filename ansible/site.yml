@@ -2,4 +2,5 @@
 - hosts: all
   roles:
   - role: common
+  - role: postfix
   - role: db

@@ -2,5 +2,5 @@
 - become: yes
   community.general.pacman:
     name:
-    - postgresql
+    - postfix
     state: present

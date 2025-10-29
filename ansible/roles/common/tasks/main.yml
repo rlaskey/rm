@@ -1,13 +1,22 @@
 ---
 - become: yes
   community.general.pacman:
+    update_cache: yes
+
+- become: yes
+  community.general.pacman:
     name:
     - dnsutils
+    - elixir
     - libheif
     - libvips
     - nmap
-    - postfix
     - ripgrep
     - tmux
     state: present
-    update_cache: yes
+
+- become: yes
+  community.general.locale_gen:
+    name:
+    - en_US.UTF-8
+    state: present
