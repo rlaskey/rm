@@ -1,22 +1,18 @@
 ---
-- become: yes
+- become: true
   community.general.pacman:
-    update_cache: yes
+    update_cache: true
 
-- become: yes
+- become: true
   community.general.pacman:
     name:
     - dnsutils
     - elixir
+    - erlang-public_key
+    - erlang-ssl
     - libheif
     - libvips
     - nmap
     - ripgrep
     - tmux
-    state: present
-
-- become: yes
-  community.general.locale_gen:
-    name:
-    - en_US.UTF-8
     state: present

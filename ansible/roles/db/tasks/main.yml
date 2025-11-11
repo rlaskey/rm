@@ -1,6 +1,18 @@
 ---
-- become: yes
+- become: true
   community.general.pacman:
     name:
     - postgresql
     state: present
+
+- become: true
+  become_user: postgres
+  ansible.builtin.command: initdb --locale=C.UTF-8 --encoding=UTF8 -D '/var/lib/postgres/data'
+  args:
+    creates: /var/lib/postgres/data/PG_VERSION
+
+- become: true
+  ansible.builtin.service:
+    name: postgresql
+    state: started
+    enabled: true

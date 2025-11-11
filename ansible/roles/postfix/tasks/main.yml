@@ -1,5 +1,5 @@
 ---
-- become: yes
+- become: true
   community.general.pacman:
     name:
     - postfix
