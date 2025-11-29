@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+import json
 import subprocess
 
 AVIF_Q = 79
@@ -22,6 +23,74 @@ class Converter(ABC):
         raise NotImplementedError
 
 
+class AV1(Converter):
+    @classmethod
+    def suffix(cls) -> str:
+        return ".mp4"
+
+    @staticmethod
+    def audio(streams: list[dict]) -> list[str]:
+        codec_type = "audio"
+        result = []
+
+        i = 0
+        for stream in streams:
+            if stream.get("codec_type") != codec_type:
+                continue
+            if (
+                stream.get("codec_name", "").startswith("pcm")
+                or int(stream.get("bit_rate", "1536000")) > 320_000
+            ):
+                result.extend((f"-c:a:{i}", "libopus"))
+                result.extend((f"-b:a:{i}", "256k"))
+                continue
+            result.extend((f"-c:a:{i}", "copy"))
+            i += 1
+        return result
+
+    @staticmethod
+    def video(streams: list[dict]) -> list[str]:
+        codec_type = "video"
+        result = []
+
+        i = 0
+        for stream in streams:
+            if stream.get("codec_type") != codec_type:
+                continue
+            if stream.get("codec_name", "") == "av1":
+                result.extend((f"-c:v:{i}", "copy"))
+                continue
+            result.extend((f"-c:v:{i}", "libsvtav1"))
+            i += 1
+        return result
+
+    def run(self) -> None:
+        probe = subprocess.run(
+            (
+                "ffprobe",
+                "-v",
+                "warning",
+                "-show_entries",
+                "stream=codec_type,codec_name,bit_rate",
+                "-of",
+                "json",
+                self.source,
+            ),
+            capture_output=True,
+            check=True,
+        )
+        streams = json.loads(probe.stdout).get("streams")
+
+        ffmpeg = ["ffmpeg", "-i", self.source]
+        ffmpeg.extend(("-map_metadata", "0"))
+        ffmpeg.extend(("-movflags", "+faststart"))
+        ffmpeg.extend(self.audio(streams))
+        ffmpeg.extend(self.video(streams))
+        ffmpeg.append(self.target)
+
+        subprocess.run(ffmpeg, check=True)
+
+
 class AVIF(Converter):
     @classmethod
     def suffix(cls) -> str:
@@ -30,31 +99,6 @@ class AVIF(Converter):
     def run(self) -> None:
         subprocess.run(
             ("vips", "copy", self.source, f"{self.target}[Q={AVIF_Q}]"), check=True
-        )
-
-
-class MP4(Converter):
-    @classmethod
-    def suffix(cls) -> str:
-        return ".mp4"
-
-    def run(self) -> None:
-        subprocess.run(
-            (
-                "ffmpeg",
-                "-i",
-                self.source,
-                "-c:a",
-                "copy",
-                "-c:v",
-                "libsvtav1",
-                "-map_metadata",
-                "0",
-                "-movflags",
-                "+faststart",
-                self.target,
-            ),
-            check=True,
         )
 
 
@@ -96,5 +140,6 @@ REGISTRY: dict[str, Converter] = {
     ".jpg": AVIF,
     ".jpeg": AVIF,
     ".cr2": Raw,
-    ".mts": MP4,
+    ".mts": AV1,
+    ".mov": AV1,
 }
