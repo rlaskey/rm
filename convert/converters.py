@@ -102,6 +102,30 @@ class AVIF(Converter):
         )
 
 
+class Copy(Converter):
+    # NOTE: these are for the cases where we do NOT want to re-encode.
+
+    def run(self) -> None:
+        subprocess.run(("cp", self.source, self.target), check=True)
+
+
+class CopyAVIF(Copy):
+    # AVIF in, AVIF out.
+
+    @classmethod
+    def suffix(cls) -> str:
+        return ".avif"
+
+
+class CopyHEIC(Copy):
+    # Depending on licensing, it could make sense to go w/ AVIF instead.
+
+    @classmethod
+    def suffix(cls) -> str:
+        return ".heic"
+        subprocess.run(("cp", self.source, self.target), check=True)
+
+
 class Raw(Converter):
     @classmethod
     def suffix(cls) -> str:
@@ -137,9 +161,12 @@ class Raw(Converter):
 
 
 REGISTRY: dict[str, Converter] = {
-    ".jpg": AVIF,
-    ".jpeg": AVIF,
+    ".avif": CopyAVIF,
     ".cr2": Raw,
-    ".mts": AV1,
+    ".heic": CopyHEIC,
+    ".jpeg": AVIF,
+    ".jpg": AVIF,
     ".mov": AV1,
+    ".mp4": AV1,
+    ".mts": AV1,
 }
