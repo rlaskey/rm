@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from pathlib import Path
 import json
 import subprocess
 
@@ -6,7 +7,7 @@ AVIF_Q = 79
 
 
 class Converter(ABC):
-    def __init__(self, source: str, target: str):
+    def __init__(self, source: Path, target: Path):
         self.source = source
         if not source:
             raise ValueError("`source` missing")
@@ -14,13 +15,20 @@ class Converter(ABC):
         if not target:
             raise ValueError("`target` missing")
 
-    @abstractmethod
-    def run(self) -> None:
-        pass
-
     @classmethod
     def suffix(cls) -> str:
         raise NotImplementedError
+
+    @abstractmethod
+    def run(self) -> None:
+        raise NotImplementedError
+
+    def skip(self) -> bool:
+        return (
+            self.target.exists()
+            and self.target.is_file()
+            and self.target.stat().st_size > 0
+        )
 
 
 class AV1(Converter):
@@ -57,7 +65,13 @@ class AV1(Converter):
         for stream in streams:
             if stream.get("codec_type") != codec_type:
                 continue
-            if stream.get("codec_name", "") == "av1":
+            if (
+                stream.get("codec_name", "") == "av1"
+                or "10" in stream.get("pix_fmt", "")  # 10 bit
+            ):
+                # Leave these cases as-is.
+                # We may end up where a `cp` is just better, but,
+                # `copy` basically does that anyway.
                 result.extend((f"-c:v:{i}", "copy"))
                 continue
             result.extend((f"-c:v:{i}", "libsvtav1"))
@@ -81,7 +95,7 @@ class AV1(Converter):
         )
         streams = json.loads(probe.stdout).get("streams")
 
-        ffmpeg = ["ffmpeg", "-i", self.source]
+        ffmpeg = ["ffmpeg", "-nostdin", "-i", self.source]
         ffmpeg.extend(("-map_metadata", "0"))
         ffmpeg.extend(("-movflags", "+faststart"))
         ffmpeg.extend(self.audio(streams))

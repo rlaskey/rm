@@ -45,12 +45,12 @@ class Main:
                     continue
 
                 target_path = target_dir / (source_path.stem + converter.suffix())
-                if target_path.exists():
-                    # print(f"NOTE: {target_path} already exists. Moving on.")
+                c = converter(source_path, target_path)
+                if c.skip():
                     continue
 
                 try:
-                    converter(source_path, target_path).run()
+                    c.run()
                 except Exception:
                     if target_path.exists():
                         print(f"NOTE: we got an error. Deleting {target_path}.")
