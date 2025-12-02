@@ -47,7 +47,7 @@ class AV1(Converter):
                 continue
             if (
                 stream.get("codec_name", "").startswith("pcm")
-                or int(stream.get("bit_rate", "1536000")) > 320_000
+                or int(stream.get("bit_rate", "0")) > 320_000
             ):
                 result.extend((f"-c:a:{i}", "libopus"))
                 result.extend((f"-b:a:{i}", "256k"))
@@ -180,6 +180,7 @@ REGISTRY: dict[str, Converter] = {
     ".heic": CopyHEIC,
     ".jpeg": AVIF,
     ".jpg": AVIF,
+    ".mkv": AV1,
     ".mov": AV1,
     ".mp4": AV1,
     ".mts": AV1,
