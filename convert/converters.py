@@ -183,5 +183,6 @@ REGISTRY: dict[str, Converter] = {
     ".mkv": AV1,
     ".mov": AV1,
     ".mp4": AV1,
+    ".mpg": AV1,
     ".mts": AV1,
 }
