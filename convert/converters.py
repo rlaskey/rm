@@ -85,7 +85,7 @@ class AV1(Converter):
                 "-v",
                 "warning",
                 "-show_entries",
-                "stream=codec_type,codec_name,bit_rate",
+                "stream=codec_type,codec_name,pix_fmt,bit_rate",
                 "-of",
                 "json",
                 self.source,
