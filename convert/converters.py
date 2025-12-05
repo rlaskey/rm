@@ -138,6 +138,12 @@ class Copy(Converter):
         subprocess.run(("cp", self.source, self.target), check=True)
 
 
+class Copy3GP(Copy):
+    @classmethod
+    def suffix(cls) -> str:
+        return ".3gp"
+
+
 class CopyAVIF(Copy):
     # AVIF in, AVIF out.
 
@@ -190,6 +196,7 @@ class Raw(Converter):
 
 
 REGISTRY: dict[str, Converter] = {
+    ".3gp": Copy3GP,
     ".avif": CopyAVIF,
     ".cr2": Raw,
     ".heic": CopyHEIC,
@@ -200,4 +207,5 @@ REGISTRY: dict[str, Converter] = {
     ".mp4": AV1,
     ".mpg": AV1,
     ".mts": AV1,
+    ".png": AVIF,
 }
