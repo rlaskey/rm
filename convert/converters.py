@@ -104,6 +104,21 @@ class AV1(Converter):
 
         subprocess.run(ffmpeg, check=True)
 
+    def skip(self) -> bool:
+        if not self.target.exists() or not self.target.is_file():
+            return False
+
+        target_size = self.target.stat().st_size
+        if not target_size:
+            return False
+
+        if target_size > self.source.stat().st_size:
+            print()
+            print(f"## {self.target} is larger than {self.source}.")
+            print(f"rm {self.target}")
+            print(f"cp {self.source} {self.target.parent}")
+        return True
+
 
 class AVIF(Converter):
     @classmethod
