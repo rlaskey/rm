@@ -6,12 +6,16 @@
 - become: true
   community.general.pacman:
     name:
+    - certbot
+    - certbot-nginx
     - dnsutils
     - elixir
     - erlang-public_key
     - erlang-ssl
+    - fzf
     - libheif
     - libvips
+    - nginx
     - nmap
     - ripgrep
     - tmux
