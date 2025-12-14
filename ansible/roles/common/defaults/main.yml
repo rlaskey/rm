@@ -1,2 +1,4 @@
 ---
 domain: example.org
+app_port: 8080
+ssh_port: 22

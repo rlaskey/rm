@@ -6,18 +6,22 @@
 - become: true
   community.general.pacman:
     name:
+    - deno
     - dnsutils
-    - elixir
-    - erlang-public_key
-    - erlang-ssl
     - fzf
-    - libheif
     - libvips
     - nginx
     - nmap
     - ripgrep
     - tmux
+    - which
     state: present
+
+- become: true
+  template:
+    src: sshd.conf.j2
+    dest: /etc/ssh/sshd_config.d/10-rm.conf
+  notify: reload sshd
 
 - become: true
   template:

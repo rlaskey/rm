@@ -15,10 +15,14 @@ http {
 			return 301 https://{{ domain }}$request_uri;
 		}
 		location / {
-			proxy_pass http://localhost:8080;
+			proxy_pass http://127.0.0.1:{{ app_port }};
+			proxy_buffering off;
 		}
 	}
 
 	# sudo certbot --nginx
-	# ^^ this will mess this file up.
+	# ^^ this will mess this file up. That's OK.
+
+	# Extra things to try, for the SSL server:
+	# http2 on;
 }
