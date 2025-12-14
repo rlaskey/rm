@@ -1,0 +1,12 @@
+---
+- become: true
+  community.general.pacman:
+    name:
+    - certbot
+    - certbot-nginx
+    state: present
+
+- become: true
+  ansible.builtin.service:
+    name: certbot-renew.timer
+    enabled: true

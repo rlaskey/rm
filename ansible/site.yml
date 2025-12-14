@@ -1,6 +1,9 @@
 ---
 - hosts: all
   roles:
+  - role: certbot
   - role: common
   - role: postfix
   - role: db
+  vars_files:
+  - vars/main.yml

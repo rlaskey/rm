@@ -6,8 +6,6 @@
 - become: true
   community.general.pacman:
     name:
-    - certbot
-    - certbot-nginx
     - dnsutils
     - elixir
     - erlang-public_key
@@ -20,3 +18,15 @@
     - ripgrep
     - tmux
     state: present
+
+- become: true
+  template:
+    src: nginx.conf.j2
+    dest: /etc/nginx/nginx.conf
+    force: false
+  notify: restart nginx
+
+- become: true
+  ansible.builtin.service:
+    name: nginx
+    enabled: true
