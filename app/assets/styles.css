@@ -1,0 +1,21 @@
+body {
+  font-family:
+    ui-serif, "Georgia", serif, system-ui, "Apple Color Emoji",
+    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  background: #111111;
+  color: #eeeeee;
+}
+
+a {
+  color: #cccccc;
+}
+body {
+  margin: 3rem;
+}
+
+@media all and (min-width: 37em) {
+  main {
+    width: 31em;
+    margin: 3rem auto;
+  }
+}
