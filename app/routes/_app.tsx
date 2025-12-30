@@ -1,6 +1,8 @@
 import { define, SITE_NAME } from "@/src/define.ts";
 
-export default define.page(({ Component }) => (
+const EMOJI = ["🏠", "🥳", "🔊"];
+
+export default define.page(({ state, Component }) => (
   <html>
     <head>
       <meta charset="utf-8" />
@@ -8,7 +10,23 @@ export default define.page(({ Component }) => (
       <title>{SITE_NAME}</title>
     </head>
     <body>
-      <Component />
+      <main>
+        <h1>
+          {SITE_NAME}
+          {EMOJI[Math.floor(Math.random() * EMOJI.length)]}
+        </h1>
+        <Component />
+        {!!state.sessionKV && (
+          <p>
+            {!!state.sessionKV.value.userKV && (
+              <>
+                <a href="/u">Account</a>.{" "}
+              </>
+            )}
+            <a href="/logout">Logout</a>.
+          </p>
+        )}
+      </main>
     </body>
   </html>
 ));

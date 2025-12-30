@@ -11,20 +11,20 @@ import { storeUserKV } from "@/src/user.ts";
 
 export const handler = define.handlers({
   // Verify Registration Response
-  async POST(ctx) {
+  async POST({ state, req }) {
     // Session should be set at this point. Something is wrong.
-    if (ctx.state.sessionKV === null) throw new HttpError(400);
-    if (!ctx.state.sessionKV.value.authenticating) throw new HttpError(400);
+    if (state.sessionKV === null) throw new HttpError(400);
+    if (!state.sessionKV.value.authenticating) throw new HttpError(400);
 
     // Find the User: either one already logged in, OR one we're going to create.
-    let userKV = ctx.state.sessionKV.value.userKV;
+    let userKV = state.sessionKV.value.userKV;
     if (userKV === null) {
-      userKV = ctx.state.sessionKV.value.authenticating.newUserKV;
+      userKV = state.sessionKV.value.authenticating.newUserKV;
     }
     // This SHOULD never happen, but it's best to be careful.
     if (userKV === null) throw new HttpError(400);
 
-    const publicKeyCredentialJSON: PublicKeyCredentialJSON = await ctx.req
+    const publicKeyCredentialJSON: PublicKeyCredentialJSON = await req
       .json();
     const response = publicKeyCredentialJSON.response;
     const clientData = decodeClientDataJSON(response.clientDataJSON);
@@ -35,7 +35,7 @@ export const handler = define.handlers({
     }
     if (
       clientData.challenge !==
-        ctx.state.sessionKV.value.authenticating.challenge
+        state.sessionKV.value.authenticating.challenge
     ) {
       throw new HttpError(400, "clientData.challenge");
     }
@@ -43,7 +43,7 @@ export const handler = define.handlers({
     // Re-create the options so we can compare.
     // This is deterministic: the same challenge + user gets the same results.
     const options = publicKeyCredentialCreationOptions(
-      ctx.state.sessionKV.value.authenticating.challenge,
+      state.sessionKV.value.authenticating.challenge,
       userKV,
     );
 
@@ -98,9 +98,9 @@ export const handler = define.handlers({
       },
     });
     userKV.value.passkeys.add(publicKeyCredentialJSON.id);
-    await storeUserKV(userKV);
-    ctx.state.sessionKV.value.userKV = userKV;
-    delete ctx.state.sessionKV.value.authenticating;
+    if (!(await storeUserKV(userKV)).ok) throw new HttpError(500);
+    state.sessionKV.value.userKV = userKV;
+    delete state.sessionKV.value.authenticating;
 
     return new Response();
   },

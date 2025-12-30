@@ -13,11 +13,11 @@ main {
 }
 
 h1 {
-  @apply text-9xl;
+  @apply text-9xl mb-8;
 }
 
 h2 {
-  @apply text-5xl mb-4 mt-10;
+  @apply text-5xl my-8;
 }
 
 p {
@@ -28,8 +28,16 @@ a {
   @apply text-blue-500 underline;
 }
 
-button, input {
-  @apply p-2 rounded;
+label {
+  @apply cursor-pointer;
+}
+
+label, input {
+  @apply bg-gray-200 dark:bg-gray-800;
+}
+
+label, input, button {
+  @apply py-1 px-2 mx-1 rounded;
 }
 
 button {
@@ -38,4 +46,8 @@ button {
 
 button:hover {
   @apply bg-blue-600;
+}
+
+.info {
+  @apply rounded bg-blue-500 text-white p-3;
 }

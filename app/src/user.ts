@@ -31,6 +31,8 @@ export const getUserFromKV = async (key: string): Promise<User | null> => {
   return result.value;
 };
 
-export const storeUserKV = async (input: UserKV): Promise<void> => {
-  await kv.set([KV_KEY, input.key], input.value);
+export const storeUserKV = async (
+  input: UserKV,
+): Promise<Deno.KvCommitResult> => {
+  return await kv.set([KV_KEY, input.key], input.value);
 };

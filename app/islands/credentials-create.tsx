@@ -46,11 +46,16 @@ export default function CredentialsCreate() {
         context.
       </p>
       <form class="flex" onSubmit={create}>
+        <label for="i-name">
+          Name:
+        </label>
         <input
+          class="flex-1"
+          id="i-name"
           name="name"
-          class="grow mr-4"
           placeholder="Your Name"
           required
+          title="Whatever you want to call yourself / this account."
         />
         <button type="submit">
           Register

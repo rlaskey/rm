@@ -12,13 +12,13 @@ import {
 import { getUserFromKV } from "@/src/user.ts";
 
 export const handler = define.handlers({
-  async POST(ctx) {
+  async POST({ state, req }) {
     // Session should be set at this point. Something is wrong.
-    if (ctx.state.sessionKV === null) throw new HttpError(400);
-    const challenge = ctx.state.sessionKV.value.authenticating?.challenge;
+    if (state.sessionKV === null) throw new HttpError(400);
+    const challenge = state.sessionKV.value.authenticating?.challenge;
     if (typeof challenge === "undefined") throw new HttpError(400);
 
-    const publicKeyCredentialJSON: PublicKeyCredentialJSON = await ctx.req
+    const publicKeyCredentialJSON: PublicKeyCredentialJSON = await req
       .json();
     const passkey = await getPasskeyFromKV(publicKeyCredentialJSON.id);
     if (passkey === null) throw new HttpError(400, "Passkey not found.");
@@ -99,11 +99,11 @@ export const handler = define.handlers({
       );
     }
 
-    ctx.state.sessionKV.value.userKV = {
+    state.sessionKV.value.userKV = {
       key: passkey.userId,
       value: user,
     };
-    delete ctx.state.sessionKV.value.authenticating;
+    delete state.sessionKV.value.authenticating;
 
     return new Response();
   },
