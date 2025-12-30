@@ -1,5 +1,5 @@
 import { HttpError } from "fresh";
-import { define } from "@/utils.ts";
+import { define } from "@/src/define.ts";
 
 const BOTS = [
   "OAI-SearchBot",

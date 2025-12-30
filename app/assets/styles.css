@@ -1,21 +1,41 @@
+@import "tailwindcss";
+
+@theme {
+  --default-font-family: system-ui, "Georgia", serif;
+}
+
 body {
-  font-family:
-    ui-serif, "Georgia", serif, system-ui, "Apple Color Emoji",
-    "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
-  background: #111111;
-  color: #eeeeee;
+  @apply bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200;
+}
+
+main {
+  @apply w-lg mx-auto p-3;
+}
+
+h1 {
+  @apply text-9xl;
+}
+
+h2 {
+  @apply text-5xl mb-4 mt-10;
+}
+
+p {
+  @apply my-4;
 }
 
 a {
-  color: #cccccc;
-}
-body {
-  margin: 3rem;
+  @apply text-blue-500 underline;
 }
 
-@media all and (min-width: 37em) {
-  main {
-    width: 31em;
-    margin: 3rem auto;
-  }
+button, input {
+  @apply p-2 rounded;
+}
+
+button {
+  @apply bg-blue-500 text-white cursor-pointer;
+}
+
+button:hover {
+  @apply bg-blue-600;
 }

@@ -1,16 +1,14 @@
-import { define } from "@/utils.ts";
+import { define, SITE_NAME } from "@/src/define.ts";
 
-export default define.page(function App({ Component }) {
-  return (
-    <html>
-      <head>
-        <meta charset="utf-8" />
-        <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-        <title>rm</title>
-      </head>
-      <body>
-        <Component />
-      </body>
-    </html>
-  );
-});
+export default define.page(({ Component }) => (
+  <html>
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      <title>{SITE_NAME}</title>
+    </head>
+    <body>
+      <Component />
+    </body>
+  </html>
+));
