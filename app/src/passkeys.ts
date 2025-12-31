@@ -1,6 +1,6 @@
 import { SITE_NAME } from "@/src/define.ts";
 import { kv } from "@/src/kv.ts";
-import { UserKV } from "@/src/user.ts";
+import { AuthenticatedUser } from "@/src/user.ts";
 
 const HOSTNAME = Deno.env.get("HOSTNAME") || "localhost";
 const KV_KEY: string = "passkey";
@@ -37,32 +37,32 @@ type CollectedClientData = {
 };
 
 type Passkey = {
+  id: Base64URLString;
   alg: COSEAlgorithmIdentifier;
   publicKey: Base64URLString;
   userId: string;
 };
 
-type PasskeyKV = {
-  key: Base64URLString; // `id`
-  value: Passkey;
-};
-
-export const getPasskeyFromKV = async (
-  key: Base64URLString,
+export const getPasskey = async (
+  id: Base64URLString,
 ): Promise<Passkey | null> => {
-  const result = await kv.get<Passkey>([KV_KEY, key]);
+  const result = await kv.get<Passkey>([KV_KEY, id]);
   if (result.versionstamp === null) return null;
   return result.value;
 };
 
-export const deletePasskeyKV = async (key: Base64URLString): Promise<void> => {
+export const deletePasskey = async (key: Base64URLString): Promise<void> => {
   await kv.delete([KV_KEY, key]);
 };
 
-export const storePasskeyKV = async (input: PasskeyKV): Promise<void> => {
-  // NOTE: this will overwrite any existing entries.
-  // I'm not sure if that's a bug or a feature.
-  await kv.set([KV_KEY, input.key], input.value);
+export const setPasskey = async (
+  passkey: Passkey,
+): Promise<Deno.KvCommitResult | Deno.KvCommitError> => {
+  const key = [KV_KEY, passkey.id];
+  return await kv.atomic()
+    .check({ key, versionstamp: null })
+    .set(key, passkey)
+    .commit();
 };
 
 abstract class Algorithm {
@@ -190,7 +190,7 @@ export const publicKeyCredentialRequestOptionsJSON = (
 
 export const publicKeyCredentialCreationOptions = (
   challenge: string,
-  userKV: UserKV,
+  authenticatedUser: AuthenticatedUser,
 ): PublicKeyCredentialCreationOptionsJSON => {
   return {
     rp: {
@@ -201,9 +201,9 @@ export const publicKeyCredentialCreationOptions = (
       return { alg: e, type: "public-key" };
     }),
     user: {
-      id: userKV.key,
-      name: userKV.value.name,
-      displayName: userKV.value.name,
+      id: authenticatedUser.id,
+      name: authenticatedUser.name,
+      displayName: authenticatedUser.name,
     },
     challenge,
   };

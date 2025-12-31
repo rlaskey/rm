@@ -1,6 +1,6 @@
 import { define } from "@/src/define.ts";
 
-import { destroySession } from "@/src/session.ts";
+import { deleteSession } from "@/src/session.ts";
 
 export const handler = define.handlers({
   async GET({ state }) {
@@ -8,8 +8,8 @@ export const handler = define.handlers({
       status: 307,
       headers: { Location: "/" },
     });
-    await destroySession(response, state.sessionKV);
-    state.sessionKV = null;
+    await deleteSession(response, state.session);
+    state.session = null;
     return response;
   },
 });

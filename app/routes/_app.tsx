@@ -16,9 +16,9 @@ export default define.page(({ state, Component }) => (
           {EMOJI[Math.floor(Math.random() * EMOJI.length)]}
         </h1>
         <Component />
-        {!!state.sessionKV && (
+        {!!state.session && (
           <p>
-            {!!state.sessionKV.value.userKV && (
+            {!!state.session.userId && (
               <>
                 <a href="/u">Account</a>.{" "}
               </>

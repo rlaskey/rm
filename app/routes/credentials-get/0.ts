@@ -3,20 +3,17 @@ import {
   createChallenge,
   publicKeyCredentialRequestOptionsJSON,
 } from "@/src/passkeys.ts";
-import { newSession } from "@/src/session.ts";
+import { emptySession } from "@/src/session.ts";
 
 export const handler = define.handlers({
   GET({ state, req }) {
-    if (!state.sessionKV) state.sessionKV = newSession(req.headers);
-    state.sessionKV.value.authenticating = {
-      challenge: createChallenge(),
-      newUserKV: null,
-    };
+    if (!state.session) state.session = emptySession(req.headers);
+
+    state.session.challenge = createChallenge();
+    state.session.save = true;
 
     return Response.json(
-      publicKeyCredentialRequestOptionsJSON(
-        state.sessionKV.value.authenticating.challenge,
-      ),
+      publicKeyCredentialRequestOptionsJSON(state.session.challenge),
     );
   },
 });

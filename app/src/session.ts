@@ -1,9 +1,9 @@
 import { equal } from "@std/assert";
-import { ulid } from "@std/ulid";
 import { deleteCookie, getCookies, setCookie, UserAgent } from "@std/http";
+import { ulid } from "@std/ulid";
 
 import { kv } from "@/src/kv.ts";
-import { UserKV } from "@/src/user.ts";
+import { AuthenticatedUser } from "@/src/user.ts";
 
 const KV_KEY: string = "session";
 const COOKIE_NAME: string = "rm";
@@ -19,19 +19,21 @@ type UserAgentMatch = {
   osName: string;
 };
 
-type Session = {
+export interface Session {
+  id: string;
   userAgentMatch: UserAgentMatch;
-  authenticating?: {
-    challenge: string;
-    newUserKV: UserKV | null;
-  };
-  userKV: UserKV | null;
-};
+  save?: boolean;
 
-export type SessionKV = {
-  key: string;
-  value: Session;
-};
+  // Credentials
+  challenge?: string;
+  futureUser?: AuthenticatedUser;
+
+  userId?: string;
+}
+
+export interface AuthenticatedSession extends Session {
+  userId: string;
+}
 
 const uaToMatch = (ua: UserAgent): UserAgentMatch => {
   return {
@@ -42,19 +44,21 @@ const uaToMatch = (ua: UserAgent): UserAgentMatch => {
   };
 };
 
-const fromKV = async (
-  id: string,
-  ua: UserAgent,
-): Promise<Session | null> => {
+const userAgent = (headers: Headers): UserAgent => {
+  return new UserAgent(headers.get("user-agent"));
+};
+
+export const getSession = async (headers: Headers): Promise<Session | null> => {
+  const id: string | null = getCookies(headers)[COOKIE_NAME] || null;
+  if (id === null) return null;
+
   const key: string[] = [KV_KEY, id];
   const result = await kv.get<Session>(key);
-
-  // Not found in the DB
   if (result.versionstamp === null) return null;
 
   // We only restrict on basic UA checks.
   // If these have changed, something is wrong.
-  if (!equal(uaToMatch(ua), result.value.userAgentMatch)) {
+  if (!equal(uaToMatch(userAgent(headers)), result.value.userAgentMatch)) {
     await kv.delete(key);
     return null;
   }
@@ -62,41 +66,30 @@ const fromKV = async (
   return result.value;
 };
 
-const userAgent = (headers: Headers): UserAgent => {
-  return new UserAgent(headers.get("user-agent"));
-};
-
-export const getSession = async (
-  headers: Headers,
-): Promise<SessionKV | null> => {
-  const id: string | null = getCookies(headers)[COOKIE_NAME] || null;
-  if (id === null) return null;
-
-  const data: Session | null = await fromKV(id, userAgent(headers));
-
-  return data ? { key: id, value: data } : null;
-};
-
-export const newSession = (headers: Headers): SessionKV => {
+export const emptySession = (headers: Headers): Session => {
   return {
-    key: ulid(),
-    value: { userAgentMatch: uaToMatch(userAgent(headers)), userKV: null },
+    id: ulid(),
+    userAgentMatch: uaToMatch(userAgent(headers)),
+    save: true,
   };
 };
 
-export const saveSession = async (
+export const setSession = async (
   response: Response,
-  sessionKV: SessionKV | null,
+  session: Session | null,
 ): Promise<void> => {
-  if (sessionKV === null) return;
+  if (session === null) return;
 
-  await kv.set([KV_KEY, sessionKV.key], sessionKV.value, {
+  if (!session.save) return;
+  delete session.save;
+
+  await kv.set([KV_KEY, session.id], session, {
     expireIn: 1000 * SECONDS_IN_DAY * (DAYS + 1),
   });
 
   setCookie(response.headers, {
     name: COOKIE_NAME,
-    value: sessionKV.key,
+    value: session.id,
     maxAge: SECONDS_IN_DAY * DAYS,
     sameSite: "Strict",
     secure: true,
@@ -105,11 +98,11 @@ export const saveSession = async (
   });
 };
 
-export const destroySession = async (
+export const deleteSession = async (
   response: Response,
-  sessionKV: SessionKV | null,
-) => {
-  if (sessionKV === null) return;
-  await kv.delete([KV_KEY, sessionKV.key]);
+  session: Session | null,
+): Promise<void> => {
+  if (session === null) return;
+  await kv.delete([KV_KEY, session.id]);
   deleteCookie(response.headers, COOKIE_NAME);
 };

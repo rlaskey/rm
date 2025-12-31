@@ -1,38 +1,28 @@
-import { ulid } from "@std/ulid";
 import { kv } from "@/src/kv.ts";
 
 const KV_KEY: string = "user";
 
-type User = {
-  name: string;
+export interface AuthenticatedUser extends User {
   passkeys: Set<Base64URLString>;
-  write: boolean;
-};
+}
 
-export type UserKV = {
-  key: string; // ulid
-  value: User;
-};
+export interface User {
+  id: string; // ulid
+  name: string; // Passkeys need a name.
+  passkeys?: Set<Base64URLString>;
+  write?: boolean;
+}
 
-export const blankUserKV = (name: string): UserKV => {
-  return {
-    key: ulid(),
-    value: {
-      name: name,
-      passkeys: new Set(),
-      write: false,
-    },
-  };
-};
-
-export const getUserFromKV = async (key: string): Promise<User | null> => {
-  const result = await kv.get<User>([KV_KEY, key]);
+export const getUser = async (
+  id: string,
+): Promise<AuthenticatedUser | null> => {
+  const result = await kv.get<AuthenticatedUser>([KV_KEY, id]);
   if (result.versionstamp === null) return null;
   return result.value;
 };
 
-export const storeUserKV = async (
-  input: UserKV,
+export const setUser = async (
+  authenticatedUser: AuthenticatedUser,
 ): Promise<Deno.KvCommitResult> => {
-  return await kv.set([KV_KEY, input.key], input.value);
+  return await kv.set([KV_KEY, authenticatedUser.id], authenticatedUser);
 };

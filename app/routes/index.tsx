@@ -4,9 +4,8 @@ import CredentialsCreate from "@/islands/credentials-create.tsx";
 import CredentialsGet from "@/islands/credentials-get.tsx";
 
 export default define.page(({ state }) => {
-  const userName = state.sessionKV?.value.userKV?.value.name || null;
-  const challengeCreated = !!state.sessionKV?.value.authenticating
-    ?.challenge;
+  const authenticated = !!state.session?.userId;
+  const challengeCreated = !!state.session?.challenge;
 
   const Login = () => (
     <>
@@ -23,7 +22,7 @@ export default define.page(({ state }) => {
 
   return (
     <>
-      {!userName ? <Login /> : <Welcome />}
+      {authenticated ? <Welcome /> : <Login />}
     </>
   );
 });

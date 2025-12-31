@@ -5,24 +5,28 @@ import {
   decodeAuthenticatorData,
   decodeClientDataJSON,
   publicKeyCredentialCreationOptions,
-  storePasskeyKV,
+  setPasskey,
 } from "@/src/passkeys.ts";
-import { storeUserKV } from "@/src/user.ts";
+import { getUser, setUser } from "@/src/user.ts";
 
 export const handler = define.handlers({
   // Verify Registration Response
   async POST({ state, req }) {
     // Session should be set at this point. Something is wrong.
-    if (state.sessionKV === null) throw new HttpError(400);
-    if (!state.sessionKV.value.authenticating) throw new HttpError(400);
+    if (state.session === null) throw new HttpError(400);
+    if (!state.session.challenge) throw new HttpError(400);
 
-    // Find the User: either one already logged in, OR one we're going to create.
-    let userKV = state.sessionKV.value.userKV;
-    if (userKV === null) {
-      userKV = state.sessionKV.value.authenticating.newUserKV;
+    // Find the User.
+    let user = state.session.futureUser || null;
+    if (!user) {
+      if (!state.session.userId) throw new HttpError(400);
+      user = await getUser(state.session.userId);
+      if (!user) {
+        delete state.session.userId;
+        state.session.save = true;
+        throw new HttpError(400);
+      }
     }
-    // This SHOULD never happen, but it's best to be careful.
-    if (userKV === null) throw new HttpError(400);
 
     const publicKeyCredentialJSON: PublicKeyCredentialJSON = await req
       .json();
@@ -33,18 +37,15 @@ export const handler = define.handlers({
     if (clientData.type !== "webauthn.create") {
       throw new HttpError(400, "clientData.type");
     }
-    if (
-      clientData.challenge !==
-        state.sessionKV.value.authenticating.challenge
-    ) {
+    if (clientData.challenge !== state.session.challenge) {
       throw new HttpError(400, "clientData.challenge");
     }
 
     // Re-create the options so we can compare.
     // This is deterministic: the same challenge + user gets the same results.
     const options = publicKeyCredentialCreationOptions(
-      state.sessionKV.value.authenticating.challenge,
-      userKV,
+      state.session.challenge,
+      user,
     );
 
     if ((new URL(clientData.origin)).hostname !== options.rp.id) {
@@ -89,18 +90,23 @@ export const handler = define.handlers({
       )
     ) throw new HttpError(400, "response.publicKeyAlgorithm");
 
-    await storePasskeyKV({
-      key: publicKeyCredentialJSON.id,
-      value: {
+    if (
+      !(await setPasskey({
+        id: publicKeyCredentialJSON.id,
         alg: publicKeyCredentialJSON.response.publicKeyAlgorithm,
         publicKey: publicKeyCredentialJSON.response.publicKey,
-        userId: userKV.key,
-      },
-    });
-    userKV.value.passkeys.add(publicKeyCredentialJSON.id);
-    if (!(await storeUserKV(userKV)).ok) throw new HttpError(500);
-    state.sessionKV.value.userKV = userKV;
-    delete state.sessionKV.value.authenticating;
+        userId: user.id,
+      })).ok
+    ) throw new HttpError(400);
+
+    user.passkeys.add(publicKeyCredentialJSON.id);
+    if (!(await setUser(user)).ok) throw new HttpError(500);
+
+    state.session.userId = user.id;
+    state.session.save = true;
+
+    delete state.session.challenge;
+    if (state.session.futureUser) delete state.session.futureUser;
 
     return new Response();
   },
