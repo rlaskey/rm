@@ -20,6 +20,11 @@ export default define.page(({ state, Component }) => (
           <p>
             {!!state.session.userId && (
               <>
+                {state.session.write && (
+                  <>
+                    <a href="/e">Edit</a>.{" "}
+                  </>
+                )}
                 <a href="/u">Account</a>.{" "}
               </>
             )}

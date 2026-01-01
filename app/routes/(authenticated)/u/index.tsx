@@ -1,6 +1,6 @@
 import { HttpError } from "fresh";
 
-import { authenticatedDefine, type State } from "@/src/define.ts";
+import { authenticatedDefine } from "@/src/define.ts";
 import { getUser, setUser } from "@/src/user.ts";
 
 export const handler = authenticatedDefine.handlers({
@@ -28,25 +28,19 @@ export default authenticatedDefine.page<typeof handler>(({ data }) => {
     <>
       <h2>Account: {data.name}</h2>
 
-      <p>
-        You can call yourself whatever you want, and change the name at any
-        point. There is no claiming of a username: everyone can be named Larry,
-        if that's how things shake out.
-      </p>
-
-      <form class="flex" method="POST">
-        <label for="i-name">
-          Name:
+      <form method="POST">
+        <label>
+          You can call yourself whatever you want, and change the name at any
+          point. There is no claiming of a username: everyone can be named
+          Larry, if that's how things shake out.
+          <input
+            name="name"
+            placeholder="Your Name"
+            required
+            title="Whatever you want to call yourself / this account."
+            value={data.name}
+          />
         </label>
-        <input
-          class="flex-1"
-          id="i-name"
-          name="name"
-          placeholder="Your Name"
-          required
-          title="Whatever you want to call yourself / this account."
-          value={data.name}
-        />
         <button type="submit">
           Save
         </button>

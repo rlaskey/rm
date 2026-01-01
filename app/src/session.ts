@@ -29,6 +29,7 @@ export interface Session {
   futureUser?: AuthenticatedUser;
 
   userId?: string;
+  write?: boolean;
 }
 
 export interface AuthenticatedSession extends Session {

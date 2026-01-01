@@ -29,15 +29,15 @@ a {
 }
 
 label {
-  @apply cursor-pointer;
+  @apply block cursor-pointer;
 }
 
-label, input {
-  @apply bg-gray-200 dark:bg-gray-800;
+input, button {
+  @apply py-1 px-3 rounded;
 }
 
-label, input, button {
-  @apply py-1 px-2 mx-1 rounded;
+input {
+  @apply border border-gray-300 dark:border-gray-700 w-full mt-2 mb-4;
 }
 
 button {
@@ -49,5 +49,5 @@ button:hover {
 }
 
 .info {
-  @apply rounded bg-blue-500 text-white p-3;
+  @apply border-l-6 border-blue-500 pl-2;
 }

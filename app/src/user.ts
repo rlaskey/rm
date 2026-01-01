@@ -13,6 +13,12 @@ export interface User {
   write?: boolean;
 }
 
+export const listUser = (): Deno.KvListIterator<User[]> =>
+  kv.list<User[]>({ prefix: [KV_KEY] }, {
+    limit: 23,
+    reverse: true,
+  });
+
 export const getUser = async (
   id: string,
 ): Promise<AuthenticatedUser | null> => {

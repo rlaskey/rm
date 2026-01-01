@@ -101,6 +101,7 @@ export const handler = define.handlers({
     }
 
     state.session.userId = passkey.userId;
+    if (user.write) state.session.write = true;
     state.session.save = true;
 
     delete state.session.challenge;

@@ -103,6 +103,7 @@ export const handler = define.handlers({
     if (!(await setUser(user)).ok) throw new HttpError(500);
 
     state.session.userId = user.id;
+    if (user.write) state.session.write = true;
     state.session.save = true;
 
     delete state.session.challenge;

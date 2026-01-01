@@ -34,7 +34,7 @@ export default function CredentialsGet() {
         can then create a new one.
       </p>
       <p>
-        <button class="w-full" type="button" onClick={get}>
+        <button type="button" onClick={get}>
           Authenticate
         </button>
       </p>

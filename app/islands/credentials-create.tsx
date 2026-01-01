@@ -45,18 +45,17 @@ export default function CredentialsCreate() {
         remember who you are / what you call yourself or your device, in this
         context.
       </p>
-      <form class="flex" onSubmit={create}>
-        <label for="i-name">
-          Name:
+      <form onSubmit={create}>
+        <label>
+          Name
+          <input
+            class="flex-1"
+            name="name"
+            placeholder="Your Name"
+            required
+            title="Whatever you want to call yourself / this account."
+          />
         </label>
-        <input
-          class="flex-1"
-          id="i-name"
-          name="name"
-          placeholder="Your Name"
-          required
-          title="Whatever you want to call yourself / this account."
-        />
         <button type="submit">
           Register
         </button>
