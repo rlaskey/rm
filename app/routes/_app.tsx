@@ -17,19 +17,25 @@ export default define.page(({ state, Component }) => (
         </h1>
         <Component />
         {!!state.session && (
-          <p>
-            {!!state.session.userId && (
-              <>
-                {state.session.write && (
-                  <>
-                    <a href="/e">Edit</a>.{" "}
-                  </>
-                )}
-                <a href="/u">Account</a>.{" "}
-              </>
-            )}
-            <a href="/logout">Logout</a>.
-          </p>
+          <nav>
+            <menu>
+              {!!state.session.userId && (
+                <>
+                  {state.session.write && (
+                    <li>
+                      <a href="/e">Edit</a>.
+                    </li>
+                  )}
+                  <li>
+                    <a href="/u">Account</a>.
+                  </li>
+                </>
+              )}
+              <li>
+                <a href="/logout">Logout</a>.
+              </li>
+            </menu>
+          </nav>
         )}
       </main>
     </body>

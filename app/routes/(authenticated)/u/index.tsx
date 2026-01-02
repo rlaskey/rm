@@ -29,21 +29,20 @@ export default authenticatedDefine.page<typeof handler>(({ data }) => {
       <h2>Account: {data.name}</h2>
 
       <form method="POST">
-        <label>
+        <details>
+          <summary>Name</summary>
           You can call yourself whatever you want, and change the name at any
           point. There is no claiming of a username: everyone can be named
           Larry, if that's how things shake out.
-          <input
-            name="name"
-            placeholder="Your Name"
-            required
-            title="Whatever you want to call yourself / this account."
-            value={data.name}
-          />
-        </label>
-        <button type="submit">
-          Save
-        </button>
+        </details>
+        <input
+          name="name"
+          placeholder="Your Name"
+          required
+          title="Whatever you want to call yourself / this account."
+          value={data.name}
+        />
+        <button type="submit">Save</button>
       </form>
 
       <h2>Passkeys</h2>

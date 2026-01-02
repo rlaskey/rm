@@ -2,14 +2,23 @@
 
 @theme {
   --default-font-family: system-ui, "Georgia", serif;
+  --default-mono-font-family: ui-monospace, monospace;
 }
 
-body {
+html {
   @apply bg-gray-100 text-gray-800 dark:bg-gray-900 dark:text-gray-200;
 }
 
 main {
   @apply w-lg mx-auto p-3;
+}
+
+nav {
+  @apply mt-8 mb-4;
+}
+
+nav > menu > li {
+  @apply inline mr-1;
 }
 
 h1 {
@@ -28,20 +37,28 @@ a {
   @apply text-blue-500 underline;
 }
 
+summary, label, button, .pointer {
+  @apply cursor-pointer;
+}
+
+summary::marker {
+  content: "ℹ️";
+}
+
 label {
   @apply block cursor-pointer;
 }
 
-input, button {
-  @apply py-1 px-3 rounded;
+input, textarea, button, [contenteditable] {
+  @apply p-2 rounded;
 }
 
-input {
-  @apply border border-gray-300 dark:border-gray-700 w-full mt-2 mb-4;
+input, textarea, [contenteditable] {
+  @apply border border-gray-300 dark:border-gray-700 w-full mt-2 mb-4 font-mono;
 }
 
 button {
-  @apply bg-blue-500 text-white cursor-pointer;
+  @apply bg-blue-500 text-white mr-2;
 }
 
 button:hover {
@@ -50,4 +67,8 @@ button:hover {
 
 .info {
   @apply border-l-6 border-blue-500 pl-2;
+}
+
+.warning {
+  @apply border-l-6 border-yellow-500 pl-2;
 }
