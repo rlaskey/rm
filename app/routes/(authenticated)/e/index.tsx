@@ -5,7 +5,7 @@ export default authenticatedDefine.page(() => {
   //
   // import { listArticles } from "@/src/data.ts";
   // const entries = [];
-  // for await (const entry of listArticles()) entries.push(entry.value);
+  // for await (const article of listArticles()) entries.push(article.value);
 
   return (
     <>

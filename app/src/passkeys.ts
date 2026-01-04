@@ -5,7 +5,7 @@ import { AuthenticatedUser } from "@/src/user.ts";
 const HOSTNAME = Deno.env.get("HOSTNAME") || "localhost";
 const KV_KEY: string = "passkey";
 
-type AuthenticatorData = {
+interface AuthenticatorData {
   rpId: Base64URLString;
   flags: {
     userPresent: boolean;
@@ -21,10 +21,10 @@ type AuthenticatorData = {
   // Generally, do NOT use either of these, unless you can help it.
   credentialId?: Base64URLString;
   credentialPublicKey?: Base64URLString;
-};
+}
 
 // https://w3c.github.io/webauthn/#dictionary-client-data
-type CollectedClientData = {
+interface CollectedClientData {
   challenge: Base64URLString;
   type: "webauthn.get" | "webauthn.create";
   origin: string;
@@ -34,14 +34,14 @@ type CollectedClientData = {
     status: "supported" | "present";
     id: Base64URLString;
   };
-};
+}
 
-type Passkey = {
+interface Passkey {
   id: Base64URLString;
   alg: COSEAlgorithmIdentifier;
   publicKey: Base64URLString;
   userId: string;
-};
+}
 
 export const getPasskey = async (
   id: Base64URLString,

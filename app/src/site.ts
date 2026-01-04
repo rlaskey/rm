@@ -2,9 +2,9 @@ import { kv } from "@/src/kv.ts";
 
 const KV_KEY: string = "site";
 
-export type Site = {
+export interface Site {
   admins: Set<Base64URLString>;
-};
+}
 
 export const getSite = async (): Promise<Site> => {
   const result = await kv.get<Site>([KV_KEY]);

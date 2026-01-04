@@ -13,6 +13,7 @@
     - nginx
     - nmap
     - ripgrep
+    - sqlite
     - tmux
     - which
     state: present

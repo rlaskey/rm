@@ -49,11 +49,15 @@ label {
   @apply block cursor-pointer;
 }
 
-input, textarea, button, [contenteditable] {
+input, select, textarea, button {
   @apply p-2 rounded;
 }
 
-input, textarea, [contenteditable] {
+textarea {
+  height: 79svh; @apply resize-none;
+}
+
+input, select, textarea {
   @apply border border-gray-300 dark:border-gray-700 w-full mt-2 mb-4 font-mono;
 }
 

@@ -12,12 +12,12 @@ const SECONDS_IN_DAY: number = 60 * 60 * 24;
 
 // Subset of UA attributes where we do not want any drift.
 // Keep this construct small.
-type UserAgentMatch = {
+interface UserAgentMatch {
   browserName: string;
   cpuArchitecture: string;
   engineName: string;
   osName: string;
-};
+}
 
 export interface Session {
   id: string;

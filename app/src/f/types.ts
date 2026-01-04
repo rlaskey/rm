@@ -1,40 +1,32 @@
-import { ulid } from "@std/ulid";
-
-export enum ElementType {
-  Paragraph = "P",
-  Heading = "H",
+export enum Status {
+  Published = "P",
+  Draft = "D",
 }
 
-export abstract class Element {
-  id: string = ulid();
-  abstract type: ElementType;
+export class Reference {
+  public status: Status = Status.Draft;
+  constructor(public id: string, public name: string) {}
 
-  toJSON() {
-    return { id: this.id, type: this.type };
-  }
+  relatedIds?: Set<string>;
+  articleIds?: Set<string>;
+
+  url?: string;
+  wikipedia?: string;
+
+  bandcamp?: string;
+  appleMusic?: string;
+  spotify?: string;
+  tidal?: string;
+  discogs?: string;
+
+  goodReads?: string;
 }
 
-export class Heading extends Element {
-  override type = ElementType.Heading;
-  level: number = 2;
-  contents: string = "";
+export class Article {
+  public status: Status = Status.Draft;
+  constructor(public id: string, public markdown: string) {}
 
-  override toJSON() {
-    return { ...super.toJSON(), level: this.level, contents: this.contents };
-  }
-}
-
-export class Paragraph extends Element {
-  override type = ElementType.Paragraph;
-  contents: string = "";
-
-  override toJSON() {
-    return { ...super.toJSON(), contents: this.contents };
-  }
-}
-
-export type Article = {
-  id: string; // ulid
-  elements: Element[];
   title?: string;
-};
+  relatedIds?: Set<string>;
+  referenceIds?: Set<string>;
+}
