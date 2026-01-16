@@ -43,6 +43,16 @@ const head = (majorType: number, value: number | bigint): Uint8Array => {
   throw new RangeError("Unsupported: value >64 bits.");
 };
 
+const encodeObject = (input: object): Uint8Array => {
+  const result: Uint8Array[] = [];
+  result.push(head(5, Object.keys(input).length));
+  for (const [k, v] of Object.entries(input)) {
+    result.push(cborEncode(k));
+    result.push(cborEncode(v));
+  }
+  return joinUint8Arrays(result);
+};
+
 const encodeMap = (input: SupportedMapsCBOR): Uint8Array => {
   const result: Uint8Array[] = [];
   result.push(head(5, input.size));
@@ -118,7 +128,7 @@ export const cborEncode = (input: SupportedCBOR): Uint8Array => {
       if (Array.isArray(input)) return encodeArray(input);
       if (input instanceof Map) return encodeMap(input);
       if (input instanceof Uint8Array) return encodeBytes(input);
-      throw new Error("Object type not yet supported.");
+      return encodeObject(input);
     case "undefined":
       return encodeUndefined();
   }

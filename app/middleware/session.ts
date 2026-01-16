@@ -1,10 +1,13 @@
 import { define } from "@/src/define.ts";
-import { getSession, setSession } from "@/src/session.ts";
+import { setSession } from "@/src/session.ts";
+import { getState } from "@/src/state.ts";
 
 export const session = define.middleware(async (ctx) => {
-  ctx.state.session = await getSession(ctx.req.headers);
+  Object.assign(ctx.state, getState(ctx.req.headers));
+  const start = JSON.stringify(ctx.state.session);
+
   const response = await ctx.next();
 
-  await setSession(response, ctx.state.session);
+  setSession(response, ctx.state.session, start);
   return response;
 });

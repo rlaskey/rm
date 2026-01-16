@@ -1,27 +1,19 @@
 import { HttpError } from "fresh";
 
 import { authenticatedDefine } from "@/src/define.ts";
-import { getSite, setSite } from "@/src/site.ts";
-import { getUser, setUser } from "@/src/user.ts";
+import { db } from "@/src/sqlite.ts";
 
 export const handler = authenticatedDefine.handlers({
-  async GET({ state }) {
-    const site = await getSite();
+  GET({ state }) {
+    // We ONLY want this for cases where we have ZERO admins.
+    if (db.prepare("SELECT * FROM user WHERE write = 1").all().length) {
+      throw new HttpError(400);
+    }
 
-    // TODO: MAYBE: look for the User associated with each.
-    // If any User is not found, remove them.
-    if (site.admins.size !== 0) throw new HttpError(400);
-
-    const user = await getUser(state.session.userId);
-    if (!user) throw new HttpError(400);
-    user.write = true;
-    if (!(await setUser(user)).ok) throw new HttpError(400);
-
-    state.session.write = true;
-    state.session.save = true;
-
-    site.admins.add(state.session.userId);
-    await setSite(site);
+    if (
+      db.prepare("UPDATE user SET write = 1 WHERE id = ?").run(state.user.id)
+        .changes !== 1
+    ) throw new HttpError(400);
 
     return new Response(null, {
       status: 307,

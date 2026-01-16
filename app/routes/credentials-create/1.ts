@@ -4,26 +4,28 @@ import { define } from "@/src/define.ts";
 import {
   decodeAuthenticatorData,
   decodeClientDataJSON,
+  insertPasskey,
   publicKeyCredentialCreationOptions,
-  setPasskey,
 } from "@/src/passkeys.ts";
-import { getUser, setUser } from "@/src/user.ts";
+import { db } from "@/src/sqlite.ts";
+import { FutureUser, User } from "@/src/user.ts";
 
 export const handler = define.handlers({
   // Verify Registration Response
   async POST({ state, req }) {
     // Session should be set at this point. Something is wrong.
-    if (state.session === null) throw new HttpError(400);
-    if (!state.session.challenge) throw new HttpError(400);
+    if (!state.session) throw new HttpError(400);
+    if (!state.session.data.challenge) throw new HttpError(400);
 
-    // Find the User.
-    let user = state.session.futureUser || null;
+    let user: User | FutureUser | undefined = state.session.data.futureUser ||
+      undefined;
     if (!user) {
-      if (!state.session.userId) throw new HttpError(400);
-      user = await getUser(state.session.userId);
+      if (!state.session.user_id) throw new HttpError(400);
+      user = db.prepare("SELECT * FROM user WHERE id = ?").get(
+        state.session.user_id,
+      ) as User | undefined;
       if (!user) {
-        delete state.session.userId;
-        state.session.save = true;
+        state.session.user_id = null;
         throw new HttpError(400);
       }
     }
@@ -37,14 +39,14 @@ export const handler = define.handlers({
     if (clientData.type !== "webauthn.create") {
       throw new HttpError(400, "clientData.type");
     }
-    if (clientData.challenge !== state.session.challenge) {
+    if (clientData.challenge !== state.session.data.challenge) {
       throw new HttpError(400, "clientData.challenge");
     }
 
     // Re-create the options so we can compare.
     // This is deterministic: the same challenge + user gets the same results.
     const options = publicKeyCredentialCreationOptions(
-      state.session.challenge,
+      state.session.data.challenge,
       user,
     );
 
@@ -90,24 +92,29 @@ export const handler = define.handlers({
       )
     ) throw new HttpError(400, "response.publicKeyAlgorithm");
 
+    // Convert a FutureUser to a User.
+    if (typeof user.id === "string") {
+      const insertUserResult = db.prepare("INSERT INTO user (name) VALUES (?)")
+        .run(user.name);
+      if (insertUserResult.changes !== 1) {
+        throw new HttpError(400, "Issue creating User.");
+      }
+      user.id = insertUserResult.lastInsertRowid;
+    }
+
     if (
-      !(await setPasskey({
+      insertPasskey({
         id: publicKeyCredentialJSON.id,
         alg: publicKeyCredentialJSON.response.publicKeyAlgorithm,
-        publicKey: publicKeyCredentialJSON.response.publicKey,
-        userId: user.id,
-      })).ok
+        public_key: publicKeyCredentialJSON.response.publicKey,
+        user_id: user.id,
+      }).changes !== 1
     ) throw new HttpError(400);
 
-    user.passkeys.add(publicKeyCredentialJSON.id);
-    if (!(await setUser(user)).ok) throw new HttpError(500);
+    state.session.user_id = user.id;
 
-    state.session.userId = user.id;
-    if (user.write) state.session.write = true;
-    state.session.save = true;
-
-    delete state.session.challenge;
-    if (state.session.futureUser) delete state.session.futureUser;
+    delete state.session.data.challenge;
+    if (state.session.data.futureUser) delete state.session.data.futureUser;
 
     return new Response();
   },

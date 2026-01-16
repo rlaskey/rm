@@ -16,6 +16,7 @@ export type SupportedCBOR =
   | bigint
   | Uint8Array
   | string
+  | object
   | SupportedMajorType7;
 
 export const joinUint8Arrays = (input: Uint8Array[]): Uint8Array => {
@@ -26,6 +27,25 @@ export const joinUint8Arrays = (input: Uint8Array[]): Uint8Array => {
     result.set(i, offset);
     offset += i.byteLength;
   });
+
+  return result;
+};
+
+export const toObject = (input: SupportedMapsCBOR | object): object => {
+  if (typeof input !== "object" || input === null) return input;
+  if (Array.isArray(input)) return input.map((e) => toObject(e));
+
+  const result: { [k: string]: SupportedCBOR } = {};
+
+  if (input instanceof Map) {
+    input.forEach((v, k) => {
+      result[k] = toObject(v as object);
+    });
+  } else {
+    for (const [k, v] of Object.entries(input)) {
+      result[k] = toObject(v as object);
+    }
+  }
 
   return result;
 };

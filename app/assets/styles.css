@@ -54,7 +54,8 @@ input, select, textarea, button {
 }
 
 textarea {
-  height: 79svh; @apply resize-none;
+  height: 79svh;
+  @apply resize-none;
 }
 
 input, select, textarea {

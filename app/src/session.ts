@@ -1,11 +1,10 @@
-import { equal } from "@std/assert";
 import { deleteCookie, getCookies, setCookie, UserAgent } from "@std/http";
 import { ulid } from "@std/ulid";
 
-import { kv } from "@/src/kv.ts";
-import { AuthenticatedUser } from "@/src/user.ts";
+import { cborEncode } from "@/src/cbor-encode.ts";
+import { db } from "@/src/sqlite.ts";
+import { FutureUser } from "@/src/user.ts";
 
-const KV_KEY: string = "session";
 const COOKIE_NAME: string = "rm";
 const DAYS: number = parseInt(Deno.env.get("SESSION_DAYS") || "27", 10);
 const SECONDS_IN_DAY: number = 60 * 60 * 24;
@@ -19,24 +18,20 @@ interface UserAgentMatch {
   osName: string;
 }
 
+export interface SessionData {
+  userAgentMatch: UserAgentMatch;
+  challenge?: string;
+  futureUser?: FutureUser;
+}
+
 export interface Session {
   id: string;
-  userAgentMatch: UserAgentMatch;
-  save?: boolean;
-
-  // Credentials
-  challenge?: string;
-  futureUser?: AuthenticatedUser;
-
-  userId?: string;
-  write?: boolean;
+  data: SessionData;
+  updated_at: number;
+  user_id: number | bigint | null;
 }
 
-export interface AuthenticatedSession extends Session {
-  userId: string;
-}
-
-const uaToMatch = (ua: UserAgent): UserAgentMatch => {
+export const uaToMatch = (ua: UserAgent): UserAgentMatch => {
   return {
     browserName: ua.browser.name || "??",
     cpuArchitecture: ua.cpu.architecture || "??",
@@ -45,48 +40,55 @@ const uaToMatch = (ua: UserAgent): UserAgentMatch => {
   };
 };
 
-const userAgent = (headers: Headers): UserAgent => {
-  return new UserAgent(headers.get("user-agent"));
-};
+export const userAgent = (headers: Headers): UserAgent =>
+  new UserAgent(headers.get("user-agent"));
 
-export const getSession = async (headers: Headers): Promise<Session | null> => {
-  const id: string | null = getCookies(headers)[COOKIE_NAME] || null;
-  if (id === null) return null;
+export const getSessionId = (headers: Headers) =>
+  getCookies(headers)[COOKIE_NAME] || null;
 
-  const key: string[] = [KV_KEY, id];
-  const result = await kv.get<Session>(key);
-  if (result.versionstamp === null) return null;
-
-  // We only restrict on basic UA checks.
-  // If these have changed, something is wrong.
-  if (!equal(uaToMatch(userAgent(headers)), result.value.userAgentMatch)) {
-    await kv.delete(key);
-    return null;
-  }
-
-  return result.value;
-};
-
-export const emptySession = (headers: Headers): Session => {
+export const blankSession = (headers: Headers): Session => {
   return {
     id: ulid(),
-    userAgentMatch: uaToMatch(userAgent(headers)),
-    save: true,
+    data: {
+      userAgentMatch: uaToMatch(userAgent(headers)),
+    },
+    updated_at: Date.now(),
+    user_id: null,
   };
 };
 
-export const setSession = async (
+export const setSession = (
   response: Response,
-  session: Session | null,
-): Promise<void> => {
-  if (session === null) return;
+  session: Session | undefined,
+  start: string,
+): void => {
+  if (!session) {
+    if (start) deleteCookie(response.headers, COOKIE_NAME);
+    return;
+  }
+  if (JSON.stringify(session) === start) return;
 
-  if (!session.save) return;
-  delete session.save;
+  const data = cborEncode(session.data);
+  session.updated_at = Date.now();
 
-  await kv.set([KV_KEY, session.id], session, {
-    expireIn: 1000 * SECONDS_IN_DAY * (DAYS + 1),
-  });
+  if (!start) {
+    db.prepare("INSERT INTO session VALUES (?, ?, ?, ?)").run(
+      session.id,
+      data,
+      session.updated_at,
+      session.user_id,
+    );
+  } else {
+    db.prepare(
+      "UPDATE session SET data = ?, updated_at = ?, user_id = ? " +
+        "WHERE id = ?",
+    ).run(
+      data,
+      session.updated_at,
+      session.user_id,
+      session.id,
+    );
+  }
 
   setCookie(response.headers, {
     name: COOKIE_NAME,
@@ -99,11 +101,11 @@ export const setSession = async (
   });
 };
 
-export const deleteSession = async (
+export const deleteSession = (
   response: Response,
-  session: Session | null,
-): Promise<void> => {
-  if (session === null) return;
-  await kv.delete([KV_KEY, session.id]);
+  session: Session | undefined,
+): void => {
+  if (!session) return;
+  db.prepare("DELETE FROM session WHERE id = ?").run(session.id);
   deleteCookie(response.headers, COOKIE_NAME);
 };

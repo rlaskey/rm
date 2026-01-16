@@ -1,9 +1,10 @@
+import { joinUint8Arrays } from "@/src/cbor.ts";
+import { cborEncode } from "@/src/cbor-encode.ts";
 import { SITE_NAME } from "@/src/define.ts";
-import { kv } from "@/src/kv.ts";
-import { AuthenticatedUser } from "@/src/user.ts";
+import { db } from "@/src/sqlite.ts";
+import { FutureUser, User } from "@/src/user.ts";
 
 const HOSTNAME = Deno.env.get("HOSTNAME") || "localhost";
-const KV_KEY: string = "passkey";
 
 interface AuthenticatorData {
   rpId: Base64URLString;
@@ -36,34 +37,23 @@ interface CollectedClientData {
   };
 }
 
-interface Passkey {
+export interface Passkey {
   id: Base64URLString;
   alg: COSEAlgorithmIdentifier;
-  publicKey: Base64URLString;
-  userId: string;
+  public_key: Base64URLString;
+  user_id: number | bigint;
 }
 
-export const getPasskey = async (
-  id: Base64URLString,
-): Promise<Passkey | null> => {
-  const result = await kv.get<Passkey>([KV_KEY, id]);
-  if (result.versionstamp === null) return null;
-  return result.value;
-};
+export const insertPasskey = (passkey: Passkey) =>
+  db.prepare("INSERT INTO passkey VALUES (?, ?, ?, ?)").run(
+    passkey.id,
+    passkey.alg,
+    passkey.public_key,
+    passkey.user_id,
+  );
 
-export const deletePasskey = async (key: Base64URLString): Promise<void> => {
-  await kv.delete([KV_KEY, key]);
-};
-
-export const setPasskey = async (
-  passkey: Passkey,
-): Promise<Deno.KvCommitResult | Deno.KvCommitError> => {
-  const key = [KV_KEY, passkey.id];
-  return await kv.atomic()
-    .check({ key, versionstamp: null })
-    .set(key, passkey)
-    .commit();
-};
+export const deletePasskey = (id: Base64URLString) =>
+  db.prepare("DELETE FROM passkey WHERE id = ?").run(id);
 
 abstract class Algorithm {
   // abstract readonly alg: COSEAlgorithmIdentifier;
@@ -110,11 +100,10 @@ export class ES256 extends Algorithm {
         Uint8Array.fromBase64(clientDataJSON, { alphabet: "base64url" }),
       ),
     );
-    const signedData = new Uint8Array(
-      binaryAuthenticatorData.byteLength + clientDataJSONHash.byteLength,
-    );
-    signedData.set(binaryAuthenticatorData, 0);
-    signedData.set(clientDataJSONHash, binaryAuthenticatorData.byteLength);
+    const signedData = joinUint8Arrays([
+      binaryAuthenticatorData,
+      clientDataJSONHash,
+    ]);
 
     return await crypto.subtle.verify(
       algoParams,
@@ -122,7 +111,7 @@ export class ES256 extends Algorithm {
       this.extractASN1(
         Uint8Array.fromBase64(signature, { alphabet: "base64url" }),
       ).buffer as BufferSource,
-      signedData,
+      signedData.buffer as BufferSource,
     );
   };
 
@@ -190,7 +179,7 @@ export const publicKeyCredentialRequestOptionsJSON = (
 
 export const publicKeyCredentialCreationOptions = (
   challenge: string,
-  authenticatedUser: AuthenticatedUser,
+  user: FutureUser | User,
 ): PublicKeyCredentialCreationOptionsJSON => {
   return {
     rp: {
@@ -201,9 +190,9 @@ export const publicKeyCredentialCreationOptions = (
       return { alg: e, type: "public-key" };
     }),
     user: {
-      id: authenticatedUser.id,
-      name: authenticatedUser.name,
-      displayName: authenticatedUser.name,
+      id: cborEncode(user.id).toBase64({ alphabet: "base64url" }),
+      name: user.name,
+      displayName: user.name,
     },
     challenge,
   };

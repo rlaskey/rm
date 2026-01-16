@@ -1,32 +1,39 @@
 import { HttpError } from "fresh";
 
+import { db } from "@/src/sqlite.ts";
+
 import { authenticatedDefine } from "@/src/define.ts";
-import { getUser, setUser } from "@/src/user.ts";
+
+const passkeys = (userId: number | bigint) =>
+  db.prepare("SELECT id FROM passkey WHERE user_id = ?").all(userId).map((p) =>
+    p.id
+  );
 
 export const handler = authenticatedDefine.handlers({
-  async GET({ state }) {
-    const user = await getUser(state.session.userId);
-    if (!user) throw new HttpError(400);
-    return { data: user };
+  GET({ state }) {
+    return { data: { user: state.user, passkeys: passkeys(state.user.id) } };
   },
 
   async POST({ state, req }) {
     const newName = (await req.formData()).get("name");
     if (typeof newName !== "string" || !newName) throw new HttpError(400);
 
-    const user = await getUser(state.session.userId);
-    if (!user) throw new HttpError(400);
-    user.name = newName;
-    if (!(await setUser(user)).ok) throw new HttpError(500);
+    if (
+      db.prepare("UPDATE user SET name = ? WHERE id = ?").run(
+        newName,
+        state.user.id,
+      ).changes !== 1
+    ) throw new HttpError(500);
+    state.user.name = newName;
 
-    return { data: user };
+    return { data: { user: state.user, passkeys: passkeys(state.user.id) } };
   },
 });
 
 export default authenticatedDefine.page<typeof handler>(({ data }) => {
   return (
     <>
-      <h2>Account: {data.name}</h2>
+      <h2>Account: {data.user.name}</h2>
 
       <form method="POST">
         <details>
@@ -40,7 +47,7 @@ export default authenticatedDefine.page<typeof handler>(({ data }) => {
           placeholder="Your Name"
           required
           title="Whatever you want to call yourself / this account."
-          value={data.name}
+          value={data.user.name}
         />
         <button type="submit">Save</button>
       </form>

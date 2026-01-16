@@ -7,24 +7,25 @@ import {
   createChallenge,
   publicKeyCredentialCreationOptions,
 } from "@/src/passkeys.ts";
-import { emptySession } from "@/src/session.ts";
-import { AuthenticatedUser, getUser } from "@/src/user.ts";
+import { blankSession } from "@/src/session.ts";
+import { db } from "@/src/sqlite.ts";
+import { FutureUser, User } from "@/src/user.ts";
 
 export const handler = define.handlers({
   async POST({ state, req }) {
-    if (!state.session) state.session = emptySession(req.headers);
-    state.session.challenge = createChallenge();
-    state.session.save = true;
+    if (!state.session) state.session = blankSession(req.headers);
+    state.session.data.challenge = createChallenge();
 
-    let user: AuthenticatedUser = {
+    let user: User | FutureUser = {
       id: ulid(),
       name: "LARRY",
-      passkeys: new Set(),
     };
-    if (state.session.userId) {
-      const existingUser = await getUser(state.session.userId);
+    if (state.session.user_id) {
+      const existingUser = db.prepare("SELECT * FROM user WHERE id = ?").get(
+        state.session.user_id,
+      ) as User | undefined;
       if (!existingUser) {
-        delete state.session.userId;
+        state.session.user_id = null;
         throw new HttpError(400);
       }
       user = existingUser;
@@ -34,12 +35,15 @@ export const handler = define.handlers({
         throw new HttpError(400);
       }
       user.name = requestedName;
-      state.session.futureUser = user;
+      state.session.data.futureUser = {
+        id: user.id,
+        name: user.name,
+      };
     }
 
     return Response.json(
       publicKeyCredentialCreationOptions(
-        state.session.challenge,
+        state.session.data.challenge,
         user,
       ),
     );

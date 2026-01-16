@@ -19,9 +19,9 @@ export default define.page(({ state, Component }) => (
         {!!state.session && (
           <nav>
             <menu>
-              {!!state.session.userId && (
+              {!!state.user && (
                 <>
-                  {state.session.write && (
+                  {state.user.write && (
                     <li>
                       <a href="/e">Edit</a>.
                     </li>

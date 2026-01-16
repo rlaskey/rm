@@ -1,32 +1,28 @@
-export enum Status {
-  Published = "P",
-  Draft = "D",
-}
-
 export class Reference {
-  public status: Status = Status.Draft;
-  constructor(public id: string, public name: string) {}
+  constructor(public id: number, public name: string) {}
 
-  relatedIds?: Set<string>;
-  articleIds?: Set<string>;
+  public related: Set<Reference> = new Set<Reference>();
+  public articles: Set<Article> = new Set<Article>();
 
-  url?: string;
-  wikipedia?: string;
+  public url: string | null = null;
+  public wikipedia: string | null = null;
 
-  bandcamp?: string;
-  appleMusic?: string;
-  spotify?: string;
-  tidal?: string;
-  discogs?: string;
+  public bandcamp: string | null = null;
+  public apple_music: string | null = null;
+  public spotify: string | null = null;
+  public tidal: string | null = null;
+  public discogs: string | null = null;
 
-  goodReads?: string;
+  public goodreads: string | null = null;
 }
 
 export class Article {
-  public status: Status = Status.Draft;
-  constructor(public id: string, public markdown: string) {}
+  constructor(public id: number, public markdown: string) {}
 
-  title?: string;
-  relatedIds?: Set<string>;
-  referenceIds?: Set<string>;
+  public published: number | null = null;
+
+  public title: string | null = null;
+
+  public related: Set<Article> = new Set<Article>();
+  public references: Set<Reference> = new Set<Reference>();
 }

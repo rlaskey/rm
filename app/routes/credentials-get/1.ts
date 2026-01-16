@@ -6,21 +6,24 @@ import {
   decodeAuthenticatorData,
   decodeClientDataJSON,
   deletePasskey,
-  getPasskey,
+  Passkey,
   publicKeyCredentialRequestOptionsJSON,
 } from "@/src/passkeys.ts";
-import { getUser } from "@/src/user.ts";
+import { db } from "@/src/sqlite.ts";
+import { User } from "@/src/user.ts";
 
 export const handler = define.handlers({
   async POST({ state, req }) {
     // Session should be set at this point. Something is wrong.
-    if (state.session === null) throw new HttpError(400);
-    if (!state.session.challenge) throw new HttpError(400);
+    if (!state.session) throw new HttpError(400);
+    if (!state.session.data.challenge) throw new HttpError(400);
 
     const publicKeyCredentialJSON: PublicKeyCredentialJSON = await req
       .json();
-    const passkey = await getPasskey(publicKeyCredentialJSON.id);
-    if (passkey === null) throw new HttpError(400, "Passkey not found.");
+    const passkey = db.prepare("SELECT * FROM passkey WHERE id = ?").get(
+      publicKeyCredentialJSON.id,
+    ) as Passkey | undefined;
+    if (!passkey) throw new HttpError(400, "Passkey not found.");
     // https://w3c.github.io/webauthn/#sctn-verifying-assertion
 
     const algorithm = ALGORITHMS.get(passkey.alg);
@@ -32,7 +35,7 @@ export const handler = define.handlers({
 
     if (
       !await algorithm.verify(
-        passkey.publicKey,
+        passkey.public_key,
         publicKeyCredentialJSON.response.signature,
         publicKeyCredentialJSON.response.authenticatorData,
         publicKeyCredentialJSON.response.clientDataJSON,
@@ -41,9 +44,11 @@ export const handler = define.handlers({
       throw new HttpError(400, "Verification failed.");
     }
 
-    const user = await getUser(passkey.userId);
-    if (user === null) {
-      await deletePasskey(publicKeyCredentialJSON.id);
+    state.user = db.prepare("SELECT * FROM user WHERE id = ?").get(
+      passkey.user_id,
+    ) as User | undefined;
+    if (!state.user) {
+      deletePasskey(publicKeyCredentialJSON.id);
       throw new HttpError(
         400,
         "Passkey was associated with a deleted User account.",
@@ -54,12 +59,12 @@ export const handler = define.handlers({
       publicKeyCredentialJSON.response.clientDataJSON,
     );
     if (C.type !== "webauthn.get") throw new HttpError(400, "C.type");
-    if (C.challenge !== state.session.challenge) {
+    if (C.challenge !== state.session.data.challenge) {
       throw new HttpError(400, "C.challenge");
     }
 
     const options = publicKeyCredentialRequestOptionsJSON(
-      state.session.challenge,
+      state.session.data.challenge,
     );
 
     if ((new URL(C.origin)).hostname !== options.rpId) {
@@ -100,12 +105,10 @@ export const handler = define.handlers({
       );
     }
 
-    state.session.userId = passkey.userId;
-    if (user.write) state.session.write = true;
-    state.session.save = true;
+    state.session.user_id = state.user.id;
 
-    delete state.session.challenge;
-    delete state.session.futureUser;
+    delete state.session.data.challenge;
+    delete state.session.data.futureUser;
 
     return new Response();
   },

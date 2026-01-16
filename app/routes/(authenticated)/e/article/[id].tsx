@@ -5,13 +5,12 @@ import { Article } from "@/src/f/types.ts";
 
 export const handler = authenticatedDefine.handlers<Article>({
   GET({ params }) {
-    return { data: new Article(params.id, "") };
+    return { data: new Article(parseInt(params.id), "") };
   },
-
-  POST() {
-    // TODO: await req.formData();
-    return { data: new Article("??", "??") };
-  },
+  // POST() {
+  // TODO: await req.formData();
+  // return { data: new Article(??number, "??") };
+  // },
 });
 
 export default authenticatedDefine.page<typeof handler>(({ data }) => {
