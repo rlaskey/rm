@@ -4,7 +4,7 @@ import { authenticatedDefine } from "@/src/define.ts";
 import { db } from "@/src/sqlite.ts";
 
 export const handler = authenticatedDefine.handlers({
-  GET({ state }) {
+  GET({ state, redirect }) {
     // We ONLY want this for cases where we have ZERO admins.
     if (db.prepare("SELECT * FROM user WHERE write = 1").all().length) {
       throw new HttpError(400);
@@ -15,9 +15,6 @@ export const handler = authenticatedDefine.handlers({
         .changes !== 1
     ) throw new HttpError(400);
 
-    return new Response(null, {
-      status: 307,
-      headers: { Location: "/e" },
-    });
+    return redirect("/e");
   },
 });
