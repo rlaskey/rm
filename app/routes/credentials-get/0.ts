@@ -9,10 +9,10 @@ export const handler = define.handlers({
   GET({ state, req }) {
     if (!state.session) state.session = blankSession(req.headers);
 
-    state.session.data.challenge = createChallenge();
+    state.session.data.set("challenge", createChallenge());
 
-    return Response.json(
-      publicKeyCredentialRequestOptionsJSON(state.session.data.challenge),
-    );
+    return Response.json(publicKeyCredentialRequestOptionsJSON(
+      state.session.data.get("challenge") as string,
+    ));
   },
 });

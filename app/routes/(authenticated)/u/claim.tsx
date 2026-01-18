@@ -11,7 +11,9 @@ export const handler = authenticatedDefine.handlers({
     }
 
     if (
-      db.prepare("UPDATE user SET write = 1 WHERE id = ?").run(state.user.id)
+      db.prepare("UPDATE user SET write = 1 WHERE id = ?").run(
+        state.user.get("id") as number | bigint,
+      )
         .changes !== 1
     ) throw new HttpError(400);
 

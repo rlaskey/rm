@@ -2,7 +2,7 @@ import { joinUint8Arrays } from "@/src/cbor.ts";
 import { cborEncode } from "@/src/cbor-encode.ts";
 import { SITE_NAME } from "@/src/define.ts";
 import { db } from "@/src/sqlite.ts";
-import { FutureUser, User } from "@/src/user.ts";
+import { User } from "@/src/user.ts";
 
 const HOSTNAME = Deno.env.get("HOSTNAME") || "localhost";
 
@@ -179,7 +179,7 @@ export const publicKeyCredentialRequestOptionsJSON = (
 
 export const publicKeyCredentialCreationOptions = (
   challenge: string,
-  user: FutureUser | User,
+  user: User,
 ): PublicKeyCredentialCreationOptionsJSON => {
   return {
     rp: {
@@ -190,9 +190,9 @@ export const publicKeyCredentialCreationOptions = (
       return { alg: e, type: "public-key" };
     }),
     user: {
-      id: cborEncode(user.id).toBase64({ alphabet: "base64url" }),
-      name: user.name,
-      displayName: user.name,
+      id: cborEncode(user.get("id")).toBase64({ alphabet: "base64url" }),
+      name: user.get("name") as string,
+      displayName: user.get("name") as string,
     },
     challenge,
   };

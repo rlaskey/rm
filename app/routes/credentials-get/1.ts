@@ -16,7 +16,7 @@ export const handler = define.handlers({
   async POST({ state, req }) {
     // Session should be set at this point. Something is wrong.
     if (!state.session) throw new HttpError(400);
-    if (!state.session.data.challenge) throw new HttpError(400);
+    if (!state.session.data.get("challenge")) throw new HttpError(400);
 
     const publicKeyCredentialJSON: PublicKeyCredentialJSON = await req
       .json();
@@ -44,27 +44,28 @@ export const handler = define.handlers({
       throw new HttpError(400, "Verification failed.");
     }
 
-    state.user = db.prepare("SELECT * FROM user WHERE id = ?").get(
+    const user = db.prepare("SELECT * FROM user WHERE id = ?").get(
       passkey.user_id,
-    ) as User | undefined;
-    if (!state.user) {
+    ) as object | undefined;
+    if (!user) {
       deletePasskey(publicKeyCredentialJSON.id);
       throw new HttpError(
         400,
         "Passkey was associated with a deleted User account.",
       );
     }
+    state.user = new Map(Object.entries(user)) as User;
 
     const C = decodeClientDataJSON(
       publicKeyCredentialJSON.response.clientDataJSON,
     );
     if (C.type !== "webauthn.get") throw new HttpError(400, "C.type");
-    if (C.challenge !== state.session.data.challenge) {
+    if (C.challenge !== state.session.data.get("challenge")) {
       throw new HttpError(400, "C.challenge");
     }
 
     const options = publicKeyCredentialRequestOptionsJSON(
-      state.session.data.challenge,
+      state.session.data.get("challenge") as string,
     );
 
     if ((new URL(C.origin)).hostname !== options.rpId) {
@@ -105,10 +106,10 @@ export const handler = define.handlers({
       );
     }
 
-    state.session.user_id = state.user.id;
+    state.session.user_id = state.user.get("id") as number | bigint;
 
-    delete state.session.data.challenge;
-    delete state.session.data.futureUser;
+    state.session.data.delete("challenge");
+    state.session.data.delete("futureUser");
 
     return new Response();
   },

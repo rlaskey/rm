@@ -30,22 +30,3 @@ export const joinUint8Arrays = (input: Uint8Array[]): Uint8Array => {
 
   return result;
 };
-
-export const toObject = (input: SupportedMapsCBOR | object): object => {
-  if (typeof input !== "object" || input === null) return input;
-  if (Array.isArray(input)) return input.map((e) => toObject(e));
-
-  const result: { [k: string]: SupportedCBOR } = {};
-
-  if (input instanceof Map) {
-    input.forEach((v, k) => {
-      result[k] = toObject(v as object);
-    });
-  } else {
-    for (const [k, v] of Object.entries(input)) {
-      result[k] = toObject(v as object);
-    }
-  }
-
-  return result;
-};

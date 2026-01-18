@@ -21,7 +21,7 @@ export default define.page(({ state, Component }) => (
             <menu>
               {!!state.user && (
                 <>
-                  {state.user.write && (
+                  {state.user.get("write") && (
                     <li>
                       <a href="/e">Edit</a>.
                     </li>

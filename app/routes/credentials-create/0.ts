@@ -9,41 +9,36 @@ import {
 } from "@/src/passkeys.ts";
 import { blankSession } from "@/src/session.ts";
 import { db } from "@/src/sqlite.ts";
-import { FutureUser, User } from "@/src/user.ts";
+import { User } from "@/src/user.ts";
 
 export const handler = define.handlers({
   async POST({ state, req }) {
     if (!state.session) state.session = blankSession(req.headers);
-    state.session.data.challenge = createChallenge();
+    state.session.data.set("challenge", createChallenge());
 
-    let user: User | FutureUser = {
-      id: ulid(),
-      name: "LARRY",
-    };
+    const user: User = new Map();
     if (state.session.user_id) {
       const existingUser = db.prepare("SELECT * FROM user WHERE id = ?").get(
         state.session.user_id,
-      ) as User | undefined;
+      ) as object | undefined;
       if (!existingUser) {
         state.session.user_id = null;
         throw new HttpError(400);
       }
-      user = existingUser;
+      Object.entries(existingUser).forEach((e) => user.set(e[0], e[1]));
     } else {
       const requestedName = (await req.json())["name"];
       if (!requestedName || typeof requestedName !== "string") {
         throw new HttpError(400);
       }
-      user.name = requestedName;
-      state.session.data.futureUser = {
-        id: user.id,
-        name: user.name,
-      };
+      user.set("id", ulid());
+      user.set("name", requestedName);
+      state.session.data.set("futureUser", user);
     }
 
     return Response.json(
       publicKeyCredentialCreationOptions(
-        state.session.data.challenge,
+        state.session.data.get("challenge") as string,
         user,
       ),
     );

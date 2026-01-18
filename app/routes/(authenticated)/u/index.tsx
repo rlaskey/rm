@@ -11,7 +11,12 @@ const passkeys = (userId: number | bigint) =>
 
 export const handler = authenticatedDefine.handlers({
   GET({ state }) {
-    return { data: { user: state.user, passkeys: passkeys(state.user.id) } };
+    return {
+      data: {
+        user: state.user,
+        passkeys: passkeys(state.user.get("id") as number | bigint),
+      },
+    };
   },
 
   async POST({ state, req }) {
@@ -21,19 +26,24 @@ export const handler = authenticatedDefine.handlers({
     if (
       db.prepare("UPDATE user SET name = ? WHERE id = ?").run(
         newName,
-        state.user.id,
+        state.user.get("id") as number | bigint,
       ).changes !== 1
     ) throw new HttpError(500);
-    state.user.name = newName;
+    state.user.set("name", newName);
 
-    return { data: { user: state.user, passkeys: passkeys(state.user.id) } };
+    return {
+      data: {
+        user: state.user,
+        passkeys: passkeys(state.user.get("id") as number | bigint),
+      },
+    };
   },
 });
 
 export default authenticatedDefine.page<typeof handler>(({ data }) => {
   return (
     <>
-      <h2>Account: {data.user.name}</h2>
+      <h2>Account: {data.user.get("name")}</h2>
 
       <form method="POST">
         <details>
@@ -47,7 +57,7 @@ export default authenticatedDefine.page<typeof handler>(({ data }) => {
           placeholder="Your Name"
           required
           title="Whatever you want to call yourself / this account."
-          value={data.user.name}
+          value={data.user.get("name") as string}
         />
         <button type="submit">Save</button>
       </form>

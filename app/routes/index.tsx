@@ -5,7 +5,7 @@ import CredentialsGet from "@/islands/credentials-get.tsx";
 
 export default define.page(({ state }) => {
   const authenticated = !!state.session?.user_id;
-  const challengeCreated = !!state.session?.data.challenge;
+  const challengeCreated = !!state.session?.data.get("challenge");
 
   const Login = () => (
     <>

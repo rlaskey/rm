@@ -1,14 +1,7 @@
 import { equal } from "@std/assert";
 
-import { toObject } from "@/src/cbor.ts";
 import { cborDecode } from "@/src/cbor-decode.ts";
-import {
-  getSessionId,
-  Session,
-  SessionData,
-  uaToMatch,
-  userAgent,
-} from "@/src/session.ts";
+import { getSessionId, Session, uaToMatch, userAgent } from "@/src/session.ts";
 import { db } from "@/src/sqlite.ts";
 import { User } from "@/src/user.ts";
 
@@ -30,25 +23,23 @@ export const getState = (reqHeaders: Headers): State | null => {
   const result = {
     session: {
       id: select.id as string,
-      data: toObject(
-        cborDecode(select.data as Uint8Array) as object,
-      ) as SessionData,
+      data: cborDecode(select.data as Uint8Array),
       updated_at: select.updated_at as number,
       user_id: select.user_id as number | bigint | null,
     },
     user: select.user_id
-      ? {
-        id: select.user_id as number | bigint,
-        name: select.name as string,
-        write: Boolean(select.write),
-      }
+      ? new Map<string, number | bigint | string | boolean>([
+        ["id", select.user_id as number | bigint],
+        ["name", select.name as string],
+        ["write", Boolean(select.write)],
+      ])
       : null,
   } as State;
 
   if (
     !equal(
       uaToMatch(userAgent(reqHeaders)),
-      result.session?.data.userAgentMatch,
+      result.session?.data.get("userAgentMatch"),
     )
   ) {
     db.prepare("DELETE FROM session WHERE id = ?").run(id);
