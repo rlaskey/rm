@@ -135,3 +135,19 @@ export const cborEncode = (input: SupportedCBOR): Uint8Array => {
 
   throw new Error("Not yet supported.");
 };
+
+export const cborResponse = (input: SupportedCBOR): Response =>
+  new Response(cborEncode(input) as BufferSource, {
+    headers: { "Content-Type": "application/cbor" },
+  });
+
+export const cborRequestInit = (
+  input: SupportedCBOR,
+  method: string = "POST",
+): RequestInit => {
+  return {
+    method,
+    headers: { "Content-Type": "application/cbor" },
+    body: cborEncode(input) as BufferSource,
+  };
+};

@@ -1,10 +1,8 @@
-import { joinUint8Arrays } from "@/src/cbor.ts";
-import { cborEncode } from "@/src/cbor-encode.ts";
-import { SITE_NAME } from "@/src/define.ts";
-import { db } from "@/src/sqlite.ts";
-import { User } from "@/src/user.ts";
-
-const HOSTNAME = Deno.env.get("HOSTNAME") || "localhost";
+import { joinUint8Arrays } from "./cbor.ts";
+import { cborEncode } from "./cbor-encode.ts";
+import { HOSTNAME, SITE_NAME } from "./env.ts";
+import { db } from "./sqlite.ts";
+import { User } from "./user.ts";
 
 interface AuthenticatorData {
   rpId: Base64URLString;
@@ -44,16 +42,20 @@ export interface Passkey {
   user_id: number | bigint;
 }
 
-export const insertPasskey = (passkey: Passkey) =>
-  db.prepare("INSERT INTO passkey VALUES (?, ?, ?, ?)").run(
+export const insertPasskey = (passkey: Passkey) => {
+  using stmt = db.prepare("INSERT INTO passkey VALUES (?, ?, ?, ?)");
+  return stmt.run(
     passkey.id,
     passkey.alg,
     passkey.public_key,
     passkey.user_id,
   );
+};
 
-export const deletePasskey = (id: Base64URLString) =>
-  db.prepare("DELETE FROM passkey WHERE id = ?").run(id);
+export const deletePasskey = (id: Base64URLString) => {
+  using stmt = db.prepare("DELETE FROM passkey WHERE id = ?");
+  return stmt.run(id);
+};
 
 abstract class Algorithm {
   // abstract readonly alg: COSEAlgorithmIdentifier;

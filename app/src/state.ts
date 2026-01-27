@@ -1,9 +1,9 @@
 import { equal } from "@std/assert";
 
-import { cborDecode } from "@/src/cbor-decode.ts";
-import { getSessionId, Session, uaToMatch, userAgent } from "@/src/session.ts";
-import { db } from "@/src/sqlite.ts";
-import { User } from "@/src/user.ts";
+import { cborDecode } from "./cbor-decode.ts";
+import { getSessionId, Session, uaToMatch, userAgent } from "./session.ts";
+import { db } from "./sqlite.ts";
+import { User } from "./user.ts";
 
 export interface State {
   session: Session | undefined;
@@ -14,10 +14,11 @@ export const getState = (reqHeaders: Headers): State | null => {
   const id: string | null = getSessionId(reqHeaders);
   if (id === null) return null;
 
-  const select = db.prepare(
+  using stmt = db.prepare(
     "SELECT s.*, u.name, u.write FROM session s " +
       "LEFT JOIN user u ON s.user_id = u.id WHERE s.id = ?",
-  ).get(id);
+  );
+  const select = stmt.get(id);
   if (!select) return null;
 
   const result = {

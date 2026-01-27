@@ -1,27 +1,33 @@
-import { App, csp, csrf, staticFiles } from "fresh";
+import { exists } from "@std/fs/exists";
 
-import { bots } from "@/middleware/bots.ts";
-import { session } from "@/middleware/session.ts";
+const DIST = "dist";
 
-import { type State } from "@/src/state.ts";
-import { db } from "@/src/sqlite.ts";
+if (await exists(DIST, { isDirectory: true })) {
+  await Deno.remove(DIST, { recursive: true });
+}
+await Deno.mkdir(DIST);
 
-export const app = new App<State>();
+await Deno.bundle({
+  entrypoints: ["browser/1.tsx", "browser/2.tsx", "browser/3.tsx"],
+  outputDir: DIST,
+  platform: "browser",
+  minify: true,
+  sourcemap: "linked",
+  codeSplitting: true,
+});
 
-app.use(bots);
-app.use(session);
-app.use(staticFiles());
+import { Context } from "./src/framework.ts";
+import { db } from "./src/sqlite.ts";
 
-app.use(csp());
-app.use(csrf());
+import { layer0 } from "./layer/0/main.ts";
 
-app.fsRoutes();
-
-const shutdown = () => {
-  if (db.isOpen) db.close();
-  Deno.exit();
+const handler: Deno.ServeHandler = async (req) => {
+  const ctx = new Context(req);
+  await layer0(ctx, async () => {});
+  return ctx.res;
 };
 
-for (const signal of ["SIGINT", "SIGTERM"] as Deno.Signal[]) {
-  Deno.addSignalListener(signal, shutdown);
-}
+const server = Deno.serve(handler);
+server.finished.then(() => {
+  db.close();
+});

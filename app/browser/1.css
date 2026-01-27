@@ -1,0 +1,117 @@
+html {
+  font-family: system-ui, "Georgia", serif;
+  background-color: #f3f3f3;
+  color: #202020;
+
+  @media (prefers-color-scheme: dark) {
+    background-color: #202020;
+    color: #f3f3f3;
+  }
+}
+
+pre, code, input, select, textarea {
+  font-family: ui-monospace, monospace;
+}
+
+body {
+  @media screen and (min-width: 37rem) {
+    margin-inline: auto;
+    width: 37rem;
+  }
+}
+
+nav {
+  margin-block: 2rem;
+}
+
+menu {
+  padding-inline-start: 0;
+}
+
+menu > li {
+  margin-inline-end: 0.25rem;
+  display: inline;
+}
+
+h1, h2 {
+  margin-block: 0 1rem;
+  font-weight: inherit;
+}
+
+h1 {
+  font-size: 8rem;
+}
+
+h2 {
+  font-size: 3rem;
+}
+
+a {
+  color: #2f7fff;
+}
+
+a:hover {
+  color: #1070e0;
+}
+
+button {
+  background: #2f7fff;
+  color: white;
+  margin-inline-end: 0.5rem;
+  border: none;
+}
+
+button:hover {
+  background: #1070e0;
+}
+
+summary, label, button, .pointer {
+  cursor: pointer;
+}
+
+label {
+  display: block;
+}
+
+input, select, textarea, button {
+  border-radius: 0.25rem;
+  padding: 0.5rem;
+}
+
+textarea {
+  height: 79svh;
+  resize: none;
+}
+
+input, select, textarea {
+  width: 100%;
+  box-sizing: border-box;
+
+  margin-block: 0.5rem 1rem;
+  border-width: 1px;
+  border-color: #d0d0d0;
+
+  background: transparent;
+  color: inherit;
+}
+
+summary::marker {
+  content: "ℹ️";
+}
+
+.info, .warning, .error {
+  padding-inline-start: 0.5rem;
+  border-inline-start: 0.25rem solid;
+}
+
+.info {
+  border-inline-start-color: #2070f0;
+}
+
+.warning {
+  border-inline-start-color: #f0b000;
+}
+
+.error {
+  border-inline-start-color: #e04040;
+}

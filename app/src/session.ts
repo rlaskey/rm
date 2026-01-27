@@ -1,7 +1,7 @@
 import { getCookies, UserAgent } from "@std/http";
 import { ulid } from "@std/ulid";
 
-import { User } from "@/src/user.ts";
+import { User } from "./user.ts";
 
 export const COOKIE_NAME: string = "rm";
 
