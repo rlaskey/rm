@@ -192,7 +192,10 @@ export const publicKeyCredentialCreationOptions = (
       return { alg: e, type: "public-key" };
     }),
     user: {
-      id: cborEncode(user.get("id")).toBase64({ alphabet: "base64url" }),
+      id: cborEncode(user.get("id")).toBase64({
+        alphabet: "base64url",
+        omitPadding: true,
+      }),
       name: user.get("name") as string,
       displayName: user.get("name") as string,
     },
