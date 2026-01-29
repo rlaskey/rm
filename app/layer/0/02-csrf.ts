@@ -8,7 +8,7 @@ const block = (req: Request): boolean => {
   if (
     ALLOWED_SEC_FETCH_SITE.includes(req.headers.get("sec-fetch-site") || "")
   ) return false;
-  return false;
+  return true;
 };
 
 export const csrf: Middleware = async (ctx, next) => {

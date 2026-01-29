@@ -1,3 +1,4 @@
+import { cborResponse } from "../../../../src/cbor-encode.ts";
 import { Middleware } from "../../../../src/framework.ts";
 import {
   decodeAuthenticatorData,
@@ -143,5 +144,5 @@ export const create1: Middleware = async (ctx, _) => {
   ctx.state.session.data.delete("challenge");
   ctx.state.session.data.delete("futureUser");
 
-  ctx.res = new Response(null);
+  ctx.res = cborResponse(publicKeyCredentialJSON.id);
 };

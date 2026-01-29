@@ -1,6 +1,6 @@
 import { compose, Middleware } from "../../src/framework.ts";
 
-import { index } from "./index.tsx";
+import { w } from "./w.tsx";
 
 const block: Middleware = async (ctx, next) => {
   if (ctx.state.user?.get("write")) await next();
@@ -8,7 +8,7 @@ const block: Middleware = async (ctx, next) => {
 
 const router: Middleware = async (ctx, next) => {
   if (ctx.req.method === "GET") {
-    if (ctx.url.pathname === "/e") return await index(ctx, next);
+    if (ctx.url.pathname.startsWith("/w")) return await w(ctx, next);
   } else if (ctx.req.method === "POST") {
     //
   }

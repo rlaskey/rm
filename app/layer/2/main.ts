@@ -1,23 +1,37 @@
 import { compose, Middleware } from "../../src/framework.ts";
 
 import { claim } from "./claim.ts";
-import { index } from "./index.tsx";
+import { u } from "./u.tsx";
 import { meGET, mePOST } from "./me.ts";
 
 import { layer3 } from "../3/main.ts";
 
 const block: Middleware = async (ctx, next) => {
-  if (ctx.state.session?.user_id) await next();
+  if (ctx.state.session?.user_id) {
+    await next();
+    return;
+  }
+
+  ctx.res = new Response(null, {
+    status: 302,
+    headers: { "Location": "/login" },
+  });
 };
 
 const router: Middleware = async (ctx, next) => {
   if (ctx.req.method === "GET") {
-    if (ctx.url.pathname === "/u/claim") return await claim(ctx, next);
-
-    if (ctx.url.pathname === "/u") return await index(ctx, next);
-    if (ctx.url.pathname === "/u/me") return await meGET(ctx, next);
+    if (ctx.url.pathname.startsWith("/u")) return await u(ctx, next);
+    if (ctx.url.pathname === "/") {
+      ctx.res = new Response(null, {
+        status: 302,
+        headers: { "Location": "/u" },
+      });
+      return;
+    }
+    if (ctx.url.pathname === "/2/me") return await meGET(ctx, next);
+    if (ctx.url.pathname === "/2/claim") return await claim(ctx, next);
   } else if (ctx.req.method === "POST") {
-    if (ctx.url.pathname === "/u/me") return await mePOST(ctx, next);
+    if (ctx.url.pathname === "/2/me") return await mePOST(ctx, next);
   }
 
   await next();

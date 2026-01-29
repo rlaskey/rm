@@ -2,7 +2,7 @@ import { render } from "preact";
 import { useState } from "preact/hooks";
 
 // NOTE: we will use this for other routes. Doing this here allows the bundler to process it.
-import "./1.css";
+import "./0.css";
 
 const Layer1 = () => {
   const [attempted, setAttempted] = useState(false);
@@ -11,13 +11,13 @@ const Layer1 = () => {
 
   const yay = () => globalThis.location.replace("/u");
 
-  const get = async (): Promise<void> => {
+  const get = async () => {
     navigator.credentials.get({
       publicKey: PublicKeyCredential.parseRequestOptionsFromJSON(
-        await (await fetch("/credentials/get/0")).json(),
+        await (await fetch("/1/credentials/get/0")).json(),
       ),
     }).then((res0: Credential | null) =>
-      fetch("/credentials/get/1", {
+      fetch("/1/credentials/get/1", {
         method: "POST",
         body: JSON.stringify(res0),
       })
@@ -36,7 +36,7 @@ const Layer1 = () => {
     const name: string =
       (form.elements.namedItem("name") as HTMLInputElement).value;
 
-    fetch("/credentials/create/0", {
+    fetch("/1/credentials/create/0", {
       method: "POST",
       body: JSON.stringify({ name }),
     }).then(async (res0) => await res0.json())
@@ -48,7 +48,7 @@ const Layer1 = () => {
         if (!credential) throw new Error("Empty Credential.");
         return (credential as PublicKeyCredential).toJSON();
       }).then((j: PublicKeyCredentialJSON) =>
-        fetch("/credentials/create/1", {
+        fetch("/1/credentials/create/1", {
           method: "POST",
           body: JSON.stringify(j),
         })

@@ -22,6 +22,10 @@ body {
 
 nav {
   margin-block: 2rem;
+  border-top: 2px solid #e8e8e8;
+  @media (prefers-color-scheme: dark) {
+    border-color: #404040;
+  }
 }
 
 menu {
@@ -31,6 +35,14 @@ menu {
 menu > li {
   margin-inline-end: 0.25rem;
   display: inline;
+}
+
+hr {
+  margin-block: 2rem;
+  border: 1px solid #e8e8e8;
+  @media (prefers-color-scheme: dark) {
+    border-color: #404040;
+  }
 }
 
 h1, h2 {

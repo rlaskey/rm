@@ -9,5 +9,8 @@ export const logout: Middleware = (ctx, _) => {
 
   // Set up the session middleware to delete the cookie.
   ctx.state.session = undefined;
-  ctx.res = new Response(null, { status: 302, headers: { "Location": "/" } });
+  ctx.res = new Response(null, {
+    status: 302,
+    headers: { "Location": "/login" },
+  });
 };

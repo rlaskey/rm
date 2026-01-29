@@ -5,7 +5,15 @@ import { SITE_NAME } from "../../src/env.ts";
 
 import { App } from "../app.tsx";
 
-export const index: Middleware = (ctx, _) => {
+export const login: Middleware = (ctx, _) => {
+  if (ctx.state.session?.user_id) {
+    ctx.res = new Response(null, {
+      status: 302,
+      headers: { "Location": "/u" },
+    });
+    return;
+  }
+
   ctx.res = new Response(
     "<!DOCTYPE html>" +
       renderToString(

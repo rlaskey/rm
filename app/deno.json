@@ -6,11 +6,13 @@
   },
   "imports": {
     "@db/sqlite": "jsr:@db/sqlite@^0.13.0",
+    "@preact/signals": "npm:@preact/signals@^2.6.1",
     "@std/assert": "jsr:@std/assert@^1.0.17",
     "@std/fs": "jsr:@std/fs@^1.0.22",
     "@std/http": "jsr:@std/http@^1.0.23",
     "@std/ulid": "jsr:@std/ulid@^1.0.0",
     "preact": "npm:preact@^10.28.2",
+    "preact-iso": "npm:preact-iso@^2.11.1",
     "preact-render-to-string": "npm:preact-render-to-string@^6.6.5"
   },
   "compilerOptions": {

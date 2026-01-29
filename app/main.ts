@@ -8,7 +8,7 @@ if (await exists(DIST, { isDirectory: true })) {
 await Deno.mkdir(DIST);
 
 await Deno.bundle({
-  entrypoints: ["browser/1.tsx", "browser/2.tsx", "browser/3.tsx"],
+  entrypoints: ["browser/1.tsx", "browser/2-u.tsx", "browser/3-w.tsx"],
   outputDir: DIST,
   platform: "browser",
   minify: true,
