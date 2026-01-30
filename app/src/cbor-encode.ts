@@ -26,14 +26,14 @@ const head = (majorType: number, value: number | bigint): Uint8Array => {
     return result;
   }
   if (value < 2 ** 32) {
-    const result = new Uint8Array(4);
+    const result = new Uint8Array(5);
     result[0] = (majorType << 5) + 26;
     const view = new DataView(result.buffer);
     view.setUint32(1, Number(value));
     return result;
   }
   if (value < 2 ** 64) {
-    const result = new Uint8Array(5);
+    const result = new Uint8Array(9);
     result[0] = (majorType << 5) + 27;
     const view = new DataView(result.buffer);
     view.setBigUint64(1, BigInt(value));
