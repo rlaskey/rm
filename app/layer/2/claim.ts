@@ -9,5 +9,5 @@ export const claim: Middleware = (ctx, _) => {
   using stmt = db.prepare("UPDATE user SET write = 1 WHERE id = ?");
   if (stmt.run(ctx.state.user?.get("id")) !== 1) return;
 
-  ctx.res = new Response(null, { status: 302, headers: { "Location": "/e" } });
+  ctx.res = new Response(null, { status: 302, headers: { "Location": "/u" } });
 };

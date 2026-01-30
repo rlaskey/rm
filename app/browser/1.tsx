@@ -63,7 +63,19 @@ const Layer1 = () => {
 
   return (
     <>
-      <h1>RM🥳</h1>
+      <header>
+        <nav>
+          <menu>
+            <li>👋</li>
+            {attempted &&
+              (
+                <li>
+                  <a href="/logout">Logout</a>.
+                </li>
+              )}
+          </menu>
+        </nav>
+      </header>
       <h2>Authenticate</h2>
 
       <p>
@@ -110,14 +122,6 @@ const Layer1 = () => {
           </form>
 
           {createError && <p class="error">{createError}</p>}
-
-          <nav>
-            <menu>
-              <li>
-                <a href="/logout">Logout</a>.
-              </li>
-            </menu>
-          </nav>
         </>
       )}
     </>

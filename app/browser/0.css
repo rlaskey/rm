@@ -20,9 +20,10 @@ body {
   }
 }
 
-nav {
-  margin-block: 2rem;
-  border-top: 2px solid #e8e8e8;
+header {
+  margin-bottom: 2rem;
+
+  border-bottom: 2px solid #e8e8e8;
   @media (prefers-color-scheme: dark) {
     border-color: #404040;
   }
@@ -60,10 +61,16 @@ h2 {
 
 a {
   color: #2f7fff;
+  @media (prefers-color-scheme: dark) {
+    color: #30d0ff;
+  }
 }
 
 a:hover {
   color: #1070e0;
+  @media (prefers-color-scheme: dark) {
+    color: #10b0e0;
+  }
 }
 
 button {

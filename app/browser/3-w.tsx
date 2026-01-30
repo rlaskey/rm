@@ -1,37 +1,27 @@
 import { render } from "preact";
-import { useState } from "preact/hooks";
+import {
+  LocationProvider,
+  Route,
+  Router,
+  useLocation,
+} from "preact-iso/router";
 
-const Layer3 = () => {
-  const [markdown, setMarkdown] = useState("");
-  const [title, setTitle] = useState("");
+import { WriteArticle } from "./3/article.tsx";
+import { Index } from "./3/index.tsx";
 
-  const submit = (e: Event) => {
-    e.preventDefault();
-  };
+const Header = () => {
+  const location = useLocation();
 
   return (
-    <>
-      <h1>✏️</h1>
-      <h2>Article</h2>
-      <form onSubmit={submit}>
-        <textarea required name="markdown" rows={7}>
-          {markdown}
-        </textarea>
-
-        <label>
-          Title <input type="text" name="title" value={title} />
-        </label>
-
-        <label>
-          Published. Clear out to make this a Draft.
-          <input type="datetime-local" name="published" />
-        </label>
-
-        <button type="submit">Save</button>
-      </form>
-
+    <header>
       <nav>
         <menu>
+          <li>✏️</li>
+          {location.url !== "/w" && (
+            <li>
+              <a href="/w">Write</a>.
+            </li>
+          )}
           <li>
             <a href="/u">Account</a>.
           </li>
@@ -40,8 +30,20 @@ const Layer3 = () => {
           </li>
         </menu>
       </nav>
-    </>
+    </header>
   );
 };
+
+const Layer3 = () => (
+  <LocationProvider scope="/w">
+    <Header />
+    <main>
+      <Router>
+        <Route path="/w" component={Index} />
+        <Route path="/w/article/:id?" component={WriteArticle} />
+      </Router>
+    </main>
+  </LocationProvider>
+);
 
 addEventListener("DOMContentLoaded", () => render(<Layer3 />, document.body));
