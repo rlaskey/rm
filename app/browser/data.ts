@@ -1,3 +1,5 @@
+import { SupportedCBOR } from "../src/cbor.ts";
+
 type Option = "autoincrement" | "null";
 
 class Column {
@@ -21,48 +23,69 @@ class Column {
   };
 }
 
-export class Reference {
-  constructor(public id: number, public name: string) {}
+const secondsToDate = (input: number | bigint) => {
+  if (!input) return null;
+  return new Date(Number(input) * 1000);
+};
 
-  public related: Set<Reference> = new Set<Reference>();
-  public articles: Set<Article> = new Set<Article>();
+const zeroPad = (input: number) => String(input).padStart(2, "0");
 
-  public url?: string;
-  public wikipedia?: string;
+export const dateToLocal = (date: Date) => {
+  if (!date) return "";
 
-  public bandcamp?: string;
-  public apple_music?: string;
-  public spotify?: string;
-  public tidal?: string;
-  public discogs?: string;
+  return date.getFullYear() + "-" +
+    zeroPad(date.getMonth() + 1) + "-" +
+    zeroPad(date.getDate()) + "T" + zeroPad(date.getHours()) + ":" +
+    zeroPad(date.getMinutes());
+};
 
-  public goodreads?: string;
+abstract class Model {
+  public get schema(): Column[] {
+    return [];
+  }
 
-  public static get schema() {
+  public readonly valueType: unknown;
+
+  public mapToRecord = (input: SupportedCBOR) => {
+    if (!(input instanceof Map)) throw Error("Bad input.");
+
+    const result: Record<string, typeof this.valueType> = {};
+    this.schema.forEach((c) => {
+      let v = input.get(c.name) as typeof this.valueType;
+      if (c.t === "timestamp") v = secondsToDate(v as bigint);
+      result[c.name] = v;
+    });
+
+    return result;
+  };
+}
+
+class Reference extends Model {
+  public override get schema() {
     return [
       new Column("id", "string", new Set(["autoincrement"])),
       new Column("name", "string"),
+
       new Column("url", "string", new Set(["null"])),
       new Column("wikipedia", "string", new Set(["null"])),
+
       new Column("bandcamp", "string", new Set(["null"])),
       new Column("apple_music", "string", new Set(["null"])),
       new Column("spotify", "string", new Set(["null"])),
       new Column("tidal", "string", new Set(["null"])),
       new Column("discogs", "string", new Set(["null"])),
+
       new Column("goodreads", "string", new Set(["null"])),
     ];
   }
+
+  declare public readonly valueType: string | null | undefined;
 }
-export class Article {
-  constructor(public id: bigint, public markdown: string) {}
 
-  public related: Set<Article> = new Set<Article>();
-  public references: Set<Reference> = new Set<Reference>();
+export const aReference = new Reference();
 
-  public published?: number;
-  public title?: string;
-
-  public static get schema() {
+class Article extends Model {
+  public override get schema() {
     return [
       new Column("id", "bigint", new Set(["autoincrement"])),
       new Column("markdown", "string"),
@@ -70,4 +93,14 @@ export class Article {
       new Column("title", "string", new Set(["null"])),
     ];
   }
+
+  declare public readonly valueType:
+    | string
+    | number
+    | bigint
+    | Date
+    | null
+    | undefined;
 }
+
+export const anArticle = new Article();

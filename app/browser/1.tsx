@@ -24,10 +24,8 @@ const Layer1 = () => {
     ).then(async (res1) => {
       if (res1.ok) yay();
       else throw new Error(await res1.text());
-    }).catch((e: Error) => {
-      const message = (e instanceof Error) ? e.message : e;
-      setGetError(String(message));
-    }).finally(() => setAttempted(true));
+    }).catch((e: Error) => setGetError(String(e.message || e)))
+      .finally(() => setAttempted(true));
   };
 
   const create = (event: Event) => {
@@ -55,10 +53,7 @@ const Layer1 = () => {
       ).then(async (res1) => {
         if (res1.ok) yay();
         else throw new Error(await res1.text());
-      }).catch((e: Error) => {
-        const message = (e instanceof Error) ? e.message : e;
-        setCreateError(String(message));
-      });
+      }).catch((e: Error) => setCreateError(String(e.message || e)));
   };
 
   return (
