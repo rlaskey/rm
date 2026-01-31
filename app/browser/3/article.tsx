@@ -94,7 +94,7 @@ export const WriteArticle = () => {
 
   return (
     <>
-      <h2>Article</h2>
+      <h1>A{article.id && "/" + article.id}</h1>
       <form onSubmit={submit}>
         <textarea required name="markdown" rows={7}>
           {article.markdown}

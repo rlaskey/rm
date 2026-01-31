@@ -7,7 +7,7 @@ const Layer2 = () => {
     <>
       <header>
         <nav>
-          <menu>
+          <menu class="inline">
             <li>😁</li>
             {me.value.write && (
               <li>

@@ -22,66 +22,66 @@ body {
 
 header {
   margin-bottom: 2rem;
-
-  border-bottom: 2px solid #e8e8e8;
-  @media (prefers-color-scheme: dark) {
-    border-color: #404040;
-  }
 }
 
 menu {
-  padding-inline-start: 0;
+  padding-inline-start: 1rem;
+  text-indent: -1rem;
+  list-style-type: none;
 }
 
-menu > li {
+menu.inline > li {
   margin-inline-end: 0.25rem;
   display: inline;
 }
 
 hr {
   margin-block: 2rem;
-  border: 1px solid #e8e8e8;
+}
+
+hr, header, h1, h2, h3, h4, h5, h6 {
+  border-bottom: 2px solid #efefef;
   @media (prefers-color-scheme: dark) {
-    border-color: #404040;
+    border-bottom-color: #242424;
   }
 }
 
-h1, h2 {
+h1, h2, h3, h4, h5, h6 {
   margin-block: 0 1rem;
   font-weight: inherit;
 }
 
 h1 {
-  font-size: 8rem;
+  font-size: 4rem;
 }
 
 h2 {
   font-size: 3rem;
 }
 
-a {
-  color: #2f7fff;
-  @media (prefers-color-scheme: dark) {
-    color: #30d0ff;
-  }
+h3 {
+  font-size: 2rem;
 }
 
-a:hover {
-  color: #1070e0;
+p {
+  padding-inline: 1rem;
+}
+
+a {
+  color: #0060e0;
   @media (prefers-color-scheme: dark) {
-    color: #10b0e0;
+    color: #10a0a0;
   }
 }
 
 button {
-  background: #2f7fff;
   color: white;
   margin-inline-end: 0.5rem;
   border: none;
-}
-
-button:hover {
-  background: #1070e0;
+  background: #0070f0;
+  @media (prefers-color-scheme: dark) {
+    background: #007070;
+  }
 }
 
 summary, label, button, .pointer {
@@ -105,13 +105,15 @@ textarea {
 input, select, textarea {
   width: 100%;
   box-sizing: border-box;
+  background: transparent;
+  color: inherit;
 
   margin-block: 0.5rem 1rem;
   border-width: 1px;
   border-color: #d0d0d0;
-
-  background: transparent;
-  color: inherit;
+  @media (prefers-color-scheme: dark) {
+    border-color: #404040;
+  }
 }
 
 summary::marker {

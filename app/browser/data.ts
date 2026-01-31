@@ -46,7 +46,9 @@ abstract class Model {
 
   public readonly valueType: unknown;
 
-  public mapToRecord = (input: SupportedCBOR) => {
+  public mapToRecord = (
+    input: SupportedCBOR,
+  ): Record<string, typeof this.valueType> => {
     if (!(input instanceof Map)) throw Error("Bad input.");
 
     const result: Record<string, typeof this.valueType> = {};
