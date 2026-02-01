@@ -1,19 +1,20 @@
-import { anArticle } from "../../browser/data.ts";
+import { aReference } from "../../browser/data.ts";
 import { cborDecode } from "../../src/cbor-decode.ts";
 import { cborResponse } from "../../src/cbor-encode.ts";
 import { Middleware } from "../../src/framework.ts";
 import { db } from "../../src/sqlite.ts";
 import { getId } from "../../src/url.ts";
 
-export const insertArticle: Middleware = async (ctx, _) => {
+export const insertReference: Middleware = async (ctx, _) => {
   const r = cborDecode(await ctx.req.bytes());
   if (!(r instanceof Map)) {
     ctx.res = new Response("Bad input.", { status: 400 });
     return;
   }
-  const record = anArticle.forInsert(r) as Record<
+
+  const record = aReference.forInsert(r) as Record<
     string,
-    typeof anArticle.valueType
+    typeof aReference.valueType
   >;
   if (!Object.keys(record).length) {
     ctx.res = new Response("Empty record.", { status: 500 });
@@ -21,7 +22,7 @@ export const insertArticle: Middleware = async (ctx, _) => {
   }
 
   using stmt = db.prepare(
-    "INSERT INTO article (" + Object.keys(record).join(", ") + ") VALUES (" +
+    "INSERT INTO reference (" + Object.keys(record).join(", ") + ") VALUES (" +
       Object.keys(record).map((_) => "?").join(", ") + ")",
   );
   if (stmt.run(Object.values(record)) !== 1) {
@@ -32,8 +33,8 @@ export const insertArticle: Middleware = async (ctx, _) => {
   ctx.res = cborResponse(db.lastInsertRowId);
 };
 
-export const updateArticle: Middleware = async (ctx, _) => {
-  const id = getId("/3/article/", ctx.url.pathname);
+export const updateReference: Middleware = async (ctx, _) => {
+  const id = getId("/3/reference/", ctx.url.pathname);
   if (!id) return;
 
   const r = cborDecode(await ctx.req.bytes());
@@ -42,9 +43,9 @@ export const updateArticle: Middleware = async (ctx, _) => {
     return;
   }
 
-  const record = anArticle.forUpdate(r) as Record<
+  const record = aReference.forUpdate(r) as Record<
     string,
-    typeof anArticle.valueType
+    typeof aReference.valueType
   >;
   if (!Object.keys(record).length) {
     ctx.res = new Response("Empty record.", { status: 500 });
@@ -54,7 +55,7 @@ export const updateArticle: Middleware = async (ctx, _) => {
   if (!Object.keys(record)) return;
 
   using stmt0 = db.prepare(
-    "UPDATE article SET " +
+    "UPDATE reference SET " +
       Object.entries(record).map((e) => e[0] + " = ?").join(", ") +
       " WHERE id = ?",
   );
@@ -63,7 +64,7 @@ export const updateArticle: Middleware = async (ctx, _) => {
     return;
   }
 
-  using stmt1 = db.prepare("SELECT * FROM article WHERE id = ?");
+  using stmt1 = db.prepare("SELECT * FROM reference WHERE id = ?");
   const select = stmt1.get(id);
   if (!select) {
     ctx.res = new Response("SELECT failed.", { status: 500 });

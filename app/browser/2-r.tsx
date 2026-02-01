@@ -8,6 +8,7 @@ import {
 
 import { ReadArticle } from "./2/r-article.tsx";
 import { Index } from "./2/r-articles.tsx";
+import { ReadReference } from "./2/r-reference.tsx";
 
 const Header = () => {
   const location = useLocation();
@@ -41,6 +42,7 @@ const Layer2 = () => (
       <Router>
         <Route path="/r" component={Index} />
         <Route path="/r/a/:id?" component={ReadArticle} />
+        <Route path="/r/r/:id?" component={ReadReference} />
       </Router>
     </main>
   </LocationProvider>

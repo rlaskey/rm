@@ -4,9 +4,10 @@ import { cborDecode } from "../../src/cbor-decode.ts";
 import { SupportedArraysCBOR } from "../../src/cbor.ts";
 
 import { anArticle, dateToLocal } from "../data.ts";
+import { References } from "./r-references.tsx";
 
 export const Articles = (
-  props: { p: string; w: string } = { p: "r", w: "Published" },
+  props: { p: string; w: string } = { p: "/r/a/", w: "Published" },
 ) => {
   const [articles, setArticles] = useState<
     Record<string, typeof anArticle.valueType>[]
@@ -16,7 +17,10 @@ export const Articles = (
     fetch("/2/articles/" + props.w.toLowerCase()).then(async (res) =>
       setArticles(
         (cborDecode(await res.bytes()) as SupportedArraysCBOR).map((a) =>
-          anArticle.mapToRecord(a) as Record<string, typeof anArticle.valueType>
+          anArticle.networkToState(a) as Record<
+            string,
+            typeof anArticle.valueType
+          >
         ),
       )
     );
@@ -47,6 +51,10 @@ const ArticleIndex = () => (
     <h2>Articles</h2>
     <Articles p="/r/a/" w="Drafts" />
     <Articles p="/r/a/" w="Published" />
+
+    <hr />
+
+    <References p="/r/r/" />
   </>
 );
 

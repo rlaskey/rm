@@ -7,7 +7,8 @@ import {
 } from "preact-iso/router";
 
 import { WriteArticle } from "./3/w-article.tsx";
-import { Index } from "./3/w-articles.tsx";
+import { Index } from "./3/w-index.tsx";
+import { WriteReference } from "./3/w-reference.tsx";
 
 const Header = () => {
   const location = useLocation();
@@ -44,6 +45,7 @@ const Layer3 = () => (
       <Router>
         <Route path="/w" component={Index} />
         <Route path="/w/article/:id?" component={WriteArticle} />
+        <Route path="/w/reference/:id?" component={WriteReference} />
       </Router>
     </main>
   </LocationProvider>

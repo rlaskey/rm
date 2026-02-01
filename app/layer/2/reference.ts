@@ -3,11 +3,11 @@ import { Middleware } from "../../src/framework.ts";
 import { db } from "../../src/sqlite.ts";
 import { getId } from "../../src/url.ts";
 
-export const getArticle: Middleware = (ctx, _) => {
-  const id = getId("/2/article/", ctx.url.pathname);
+export const getReference: Middleware = (ctx, _) => {
+  const id = getId("/2/reference/", ctx.url.pathname);
   if (!id) return;
 
-  using stmt = db.prepare("SELECT * FROM article WHERE id = ?");
+  using stmt = db.prepare("SELECT * FROM reference WHERE id = ?");
   const r = stmt.get(id);
   if (!r) return;
 

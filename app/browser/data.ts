@@ -1,4 +1,4 @@
-import { SupportedCBOR } from "../src/cbor.ts";
+import { SupportedCBOR, SupportedMapsCBOR } from "../src/cbor.ts";
 
 type Option = "autoincrement" | "null";
 
@@ -9,7 +9,7 @@ class Column {
     public readonly options: Set<Option> = new Set(),
   ) {}
 
-  public fromBrowser = (input: string | number | null) => {
+  public browserToNetwork = (input: string | number | null) => {
     if (!input) return null;
 
     if (this.t === "timestamp") {
@@ -46,7 +46,7 @@ abstract class Model {
 
   public readonly valueType: unknown;
 
-  public mapToRecord = (
+  public networkToState = (
     input: SupportedCBOR,
   ): Record<string, typeof this.valueType> => {
     if (!(input instanceof Map)) throw Error("Bad input.");
@@ -56,6 +56,44 @@ abstract class Model {
       let v = input.get(c.name) as typeof this.valueType;
       if (c.t === "timestamp") v = secondsToDate(v as bigint);
       result[c.name] = v || "";
+    });
+
+    return result;
+  };
+
+  public stateToNetwork = (input: typeof this.valueType) => {
+    if (input instanceof Date) return BigInt(input.getTime() / 1000);
+    return input;
+  };
+
+  public forInsert = (
+    input: SupportedMapsCBOR,
+  ): Record<string, typeof this.valueType> => {
+    // Complete records. Skips NULLs.
+    const result: Record<string, typeof this.valueType> = {};
+
+    this.schema.forEach((c) => {
+      if (c.options.has("autoincrement")) return;
+      const v = input.get(c.name) as typeof aReference.valueType;
+      if (c.options.has("null") && !v) return;
+      result[c.name] = v;
+    });
+
+    return result;
+  };
+
+  public forUpdate = (
+    input: SupportedMapsCBOR,
+  ): Record<string, typeof this.valueType> => {
+    // Partial updates. Sets NULLs.
+    const result: Record<string, typeof this.valueType> = {};
+
+    this.schema.forEach((c) => {
+      if (c.options.has("autoincrement")) return;
+      const v = input.get(c.name) as typeof aReference.valueType;
+      if (v === undefined) return;
+
+      result[c.name] = (c.options.has("null") && !v) ? null : v;
     });
 
     return result;
@@ -81,7 +119,12 @@ class Reference extends Model {
     ];
   }
 
-  declare public readonly valueType: string | null | undefined;
+  declare public readonly valueType:
+    | number
+    | bigint
+    | string
+    | null
+    | undefined;
 }
 
 export const aReference = new Reference();

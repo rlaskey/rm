@@ -2,9 +2,10 @@ import { compose, Middleware } from "../../src/framework.ts";
 
 import { getArticle } from "./article.ts";
 import { claim } from "./claim.ts";
-import { articleDrafts, articlePublished } from "./index.ts";
+import { articleDrafts, articlePublished, references } from "./index.ts";
 import { meGET, mePOST } from "./me.ts";
 import { r } from "./r.tsx";
+import { getReference } from "./reference.ts";
 import { u } from "./u.tsx";
 
 import { layer3 } from "../3/main.ts";
@@ -39,9 +40,16 @@ const router: Middleware = async (ctx, next) => {
     if (ctx.url.pathname === "/2/articles/published") {
       return await articlePublished(ctx, next);
     }
+    if (ctx.url.pathname === "/2/references") {
+      return await references(ctx, next);
+    }
 
     if (ctx.url.pathname.startsWith("/2/article/")) {
       return await getArticle(ctx, next);
+    }
+
+    if (ctx.url.pathname.startsWith("/2/reference/")) {
+      return await getReference(ctx, next);
     }
 
     if (ctx.url.pathname === "/2/me") return await meGET(ctx, next);

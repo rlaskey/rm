@@ -18,7 +18,7 @@ export const ReadArticle = () => {
       fetch("/2/article/" + String(BigInt(route.params.id))).then(
         async (res) =>
           setArticle(
-            anArticle.mapToRecord(cborDecode(await res.bytes())) as Record<
+            anArticle.networkToState(cborDecode(await res.bytes())) as Record<
               string,
               typeof anArticle.valueType
             >,

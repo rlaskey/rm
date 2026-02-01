@@ -18,3 +18,10 @@ export const articlePublished: Middleware = (ctx, _) => {
   );
   ctx.res = cborResponse(stmt.all());
 };
+
+export const references: Middleware = (ctx, _) => {
+  using stmt = db.prepare(
+    "SELECT * FROM reference ORDER BY id DESC LIMIT 43",
+  );
+  ctx.res = cborResponse(stmt.all());
+};

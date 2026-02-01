@@ -1,7 +1,8 @@
 import { compose, Middleware } from "../../src/framework.ts";
 
-import { w } from "./w.tsx";
 import { insertArticle, updateArticle } from "./article.ts";
+import { insertReference, updateReference } from "./reference.ts";
+import { w } from "./w.tsx";
 
 const block: Middleware = async (ctx, next) => {
   if (ctx.state.user?.get("write")) await next();
@@ -14,8 +15,15 @@ const router: Middleware = async (ctx, next) => {
     if (ctx.url.pathname.startsWith("/3/article/")) {
       return await updateArticle(ctx, next);
     }
+    if (ctx.url.pathname.startsWith("/3/reference/")) {
+      return await updateReference(ctx, next);
+    }
+
     if (ctx.url.pathname === "/3/article") {
       return await insertArticle(ctx, next);
+    }
+    if (ctx.url.pathname === "/3/reference") {
+      return await insertReference(ctx, next);
     }
   }
 
