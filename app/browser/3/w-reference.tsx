@@ -76,7 +76,6 @@ export const WriteReference = () => {
           | null;
         if (element) payload.set(c.name, c.browserToNetwork(element.value));
       });
-      console.log(payload);
 
       fetch("/3/reference", cborRequestInit(payload))
         .then(async (res) => {
