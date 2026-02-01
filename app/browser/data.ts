@@ -55,7 +55,7 @@ abstract class Model {
     this.schema.forEach((c) => {
       let v = input.get(c.name) as typeof this.valueType;
       if (c.t === "timestamp") v = secondsToDate(v as bigint);
-      result[c.name] = v;
+      result[c.name] = v || "";
     });
 
     return result;
