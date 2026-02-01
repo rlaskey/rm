@@ -9,7 +9,7 @@ const Layer1 = () => {
   const [getError, setGetError] = useState("");
   const [createError, setCreateError] = useState("");
 
-  const yay = () => globalThis.location.replace("/u");
+  const yay = () => globalThis.location.replace("/r");
 
   const get = async () => {
     navigator.credentials.get({

@@ -30,11 +30,13 @@ export const userAgent = (headers: Headers): UserAgent =>
 export const getSessionId = (headers: Headers) =>
   getCookies(headers)[COOKIE_NAME] || null;
 
+export const timestampSeconds = () => Math.floor(Date.now() / 1000);
+
 export const blankSession = (headers: Headers): Session => {
   return {
     id: ulid(),
     data: new Map([["userAgentMatch", uaToMatch(userAgent(headers))]]),
-    updated_at: Date.now(),
+    updated_at: timestampSeconds(),
     user_id: null,
   };
 };
