@@ -17,7 +17,7 @@ export const WriteArticle = () => {
 
   useEffect(() => {
     if (route.params.id) {
-      fetch("/3/article/" + String(BigInt(route.params.id))).then(
+      fetch("/2/article/" + String(BigInt(route.params.id))).then(
         async (res) =>
           setArticle(
             anArticle.mapToRecord(cborDecode(await res.bytes())) as Record<
@@ -94,7 +94,7 @@ export const WriteArticle = () => {
 
   return (
     <>
-      <h1>A{article.id && "/" + article.id}</h1>
+      <h1>Article{article.id && "/" + article.id}</h1>
       <form onSubmit={submit}>
         <textarea required name="markdown" rows={7}>
           {article.markdown}
@@ -118,7 +118,9 @@ export const WriteArticle = () => {
           <p class={status.c}>{dateToLocal(status.d)} -- {status.m}</p>
         )}
 
-        <button type="submit">Save</button>
+        <p>
+          <button type="submit">Save</button>
+        </p>
       </form>
     </>
   );

@@ -6,8 +6,8 @@ import {
   useLocation,
 } from "preact-iso/router";
 
-import { WriteArticle } from "./3/w-article.tsx";
-import { Index } from "./3/w-articles.tsx";
+import { ReadArticle } from "./2/r-article.tsx";
+import { Index } from "./2/r-articles.tsx";
 
 const Header = () => {
   const location = useLocation();
@@ -16,13 +16,10 @@ const Header = () => {
     <header>
       <nav>
         <menu class="inline">
-          <li aria-hidden="true">✏️</li>
-          <li>
-            <a href="/r">Read</a>.
-          </li>
-          {location.url !== "/w" && (
+          <li aria-hidden="true">📖</li>
+          {location.url !== "/r" && (
             <li>
-              <a href="/w">Write</a>.
+              <a href="/r">Read</a>.
             </li>
           )}
           <li>
@@ -37,16 +34,16 @@ const Header = () => {
   );
 };
 
-const Layer3 = () => (
-  <LocationProvider scope="/w">
+const Layer2 = () => (
+  <LocationProvider scope="/r">
     <Header />
     <main>
       <Router>
-        <Route path="/w" component={Index} />
-        <Route path="/w/article/:id?" component={WriteArticle} />
+        <Route path="/r" component={Index} />
+        <Route path="/r/a/:id?" component={ReadArticle} />
       </Router>
     </main>
   </LocationProvider>
 );
 
-addEventListener("DOMContentLoaded", () => render(<Layer3 />, document.body));
+addEventListener("DOMContentLoaded", () => render(<Layer2 />, document.body));

@@ -36,6 +36,7 @@ menu.inline > li {
 }
 
 hr {
+  border: none;
   margin-block: 2rem;
 }
 
@@ -63,8 +64,12 @@ h3 {
   font-size: 2rem;
 }
 
-p {
+p, pre {
   padding-inline: 1rem;
+}
+
+pre {
+  white-space: pre-wrap;
 }
 
 a {

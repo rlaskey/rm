@@ -111,9 +111,11 @@ const Layer1 = () => {
                 title="Whatever you want to call yourself / this account."
               />
             </label>
-            <button type="submit">
-              Register
-            </button>
+            <p>
+              <button type="submit">
+                Register
+              </button>
+            </p>
           </form>
 
           {createError && <p class="error">{createError}</p>}

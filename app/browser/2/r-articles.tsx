@@ -1,15 +1,19 @@
 import { useEffect, useState } from "preact/hooks";
+
 import { cborDecode } from "../../src/cbor-decode.ts";
-import { anArticle, dateToLocal } from "../data.ts";
 import { SupportedArraysCBOR } from "../../src/cbor.ts";
 
-const Articles = (props: { w: string } = { w: "Drafts" }) => {
+import { anArticle, dateToLocal } from "../data.ts";
+
+export const Articles = (
+  props: { p: string; w: string } = { p: "r", w: "Published" },
+) => {
   const [articles, setArticles] = useState<
     Record<string, typeof anArticle.valueType>[]
   >();
 
   useEffect(() => {
-    fetch("/3/articles/" + props.w.toLowerCase()).then(async (res) =>
+    fetch("/2/articles/" + props.w.toLowerCase()).then(async (res) =>
       setArticles(
         (cborDecode(await res.bytes()) as SupportedArraysCBOR).map((a) =>
           anArticle.mapToRecord(a) as Record<string, typeof anArticle.valueType>
@@ -25,7 +29,7 @@ const Articles = (props: { w: string } = { w: "Drafts" }) => {
         {articles &&
           articles.map((a) => (
             <li key={a.id}>
-              <a href={"/w/article/" + a.id}>
+              <a href={props.p + a.id}>
                 #{String(a.id).padStart(3, "0")}
               </a>
               {a.published && " -- " + dateToLocal(a.published as Date)}
@@ -41,16 +45,9 @@ const Articles = (props: { w: string } = { w: "Drafts" }) => {
 const ArticleIndex = () => (
   <>
     <h2>Articles</h2>
-    <Articles w="Drafts" />
-    <Articles w="Published" />
-    <p>
-      <a href="/w/article">CREATE</a>.
-    </p>
+    <Articles p="/r/a/" w="Drafts" />
+    <Articles p="/r/a/" w="Published" />
   </>
 );
 
-export const Index = () => (
-  <>
-    <ArticleIndex />
-  </>
-);
+export const Index = () => <ArticleIndex />;

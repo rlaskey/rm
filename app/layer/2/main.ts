@@ -1,8 +1,11 @@
 import { compose, Middleware } from "../../src/framework.ts";
 
+import { getArticle } from "./article.ts";
 import { claim } from "./claim.ts";
-import { u } from "./u.tsx";
+import { articleDrafts, articlePublished } from "./index.ts";
 import { meGET, mePOST } from "./me.ts";
+import { r } from "./r.tsx";
+import { u } from "./u.tsx";
 
 import { layer3 } from "../3/main.ts";
 
@@ -21,6 +24,7 @@ const block: Middleware = async (ctx, next) => {
 const router: Middleware = async (ctx, next) => {
   if (ctx.req.method === "GET") {
     if (ctx.url.pathname.startsWith("/u")) return await u(ctx, next);
+    if (ctx.url.pathname.startsWith("/r")) return await r(ctx, next);
     if (ctx.url.pathname === "/") {
       ctx.res = new Response(null, {
         status: 302,
@@ -28,6 +32,18 @@ const router: Middleware = async (ctx, next) => {
       });
       return;
     }
+
+    if (ctx.url.pathname === "/2/articles/drafts") {
+      return await articleDrafts(ctx, next);
+    }
+    if (ctx.url.pathname === "/2/articles/published") {
+      return await articlePublished(ctx, next);
+    }
+
+    if (ctx.url.pathname.startsWith("/2/article/")) {
+      return await getArticle(ctx, next);
+    }
+
     if (ctx.url.pathname === "/2/me") return await meGET(ctx, next);
     if (ctx.url.pathname === "/2/claim") return await claim(ctx, next);
   } else if (ctx.req.method === "POST") {

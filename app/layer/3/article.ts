@@ -41,17 +41,6 @@ const getId = (path: string): bigint | null => {
   return BigInt(path.substring(prefix.length));
 };
 
-export const getArticle: Middleware = (ctx, _) => {
-  const id = getId(ctx.url.pathname);
-  if (!id) return;
-
-  using stmt = db.prepare("SELECT * FROM article WHERE id = ?");
-  const r = stmt.get(id);
-  if (!r) return;
-
-  ctx.res = cborResponse(r);
-};
-
 export const updateArticle: Middleware = async (ctx, _) => {
   const id = getId(ctx.url.pathname);
   if (!id) return;
