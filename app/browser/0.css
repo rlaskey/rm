@@ -122,6 +122,10 @@ input, select, textarea {
   }
 }
 
+input:invalid {
+  outline: 2px solid #e04040;
+}
+
 summary::marker {
   content: "ℹ️";
 }

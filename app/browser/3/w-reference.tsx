@@ -101,20 +101,56 @@ export const WriteReference = () => {
           />
         </label>
 
-        {aReference.schema.filter((c) =>
-          c.options.has("null") && c.t === "string"
-        ).map((c) => (
-          <label key={c.name}>
-            {c.name.split("_").map((x) =>
-              x.charAt(0).toLocaleUpperCase() + x.slice(1)
-            ).join(" ")}
-            <input
-              type="text"
-              name={c.name}
-              value={reference[c.name] as string}
-            />
-          </label>
-        ))}
+        <label>
+          URL
+          <input type="url" name="url" value={reference.url as string} />
+        </label>
+        <label>
+          Wikipedia
+          <input
+            type="url"
+            name="url"
+            value={reference.wikipedia as string}
+            pattern=".+wikipedia.+"
+            placeholder="https://en.wikipedia.org"
+          />
+        </label>
+        <label>
+          Bandcamp
+          <input
+            type="url"
+            name="url"
+            value={reference.bandcamp as string}
+            pattern=".+bandcamp.+"
+            placeholder="https://bandcamp.com"
+          />
+        </label>
+        <label>
+          Apple Music
+          <input
+            type="url"
+            name="url"
+            value={reference.apple_music as string}
+            pattern=".*music\.apple.+"
+            placeholder="https://music.apple.com"
+          />
+        </label>
+        <label>
+          Spotify
+          <input type="url" name="url" value={reference.spotify as string} />
+        </label>
+        <label>
+          Tidal
+          <input type="url" name="url" value={reference.tidal as string} />
+        </label>
+        <label>
+          Discogs
+          <input type="url" name="url" value={reference.discogs as string} />
+        </label>
+        <label>
+          Goodreads
+          <input type="url" name="url" value={reference.goodreads as string} />
+        </label>
 
         {status.m && (
           <p class={status.c}>{dateToLocal(status.d)} -- {status.m}</p>
