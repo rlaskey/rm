@@ -109,7 +109,7 @@ export const WriteReference = () => {
           Wikipedia
           <input
             type="url"
-            name="url"
+            name="wikipedia"
             value={reference.wikipedia as string}
             pattern=".+wikipedia.+"
             placeholder="https://en.wikipedia.org"
@@ -119,7 +119,7 @@ export const WriteReference = () => {
           Bandcamp
           <input
             type="url"
-            name="url"
+            name="bandcamp"
             value={reference.bandcamp as string}
             pattern=".+bandcamp.+"
             placeholder="https://bandcamp.com"
@@ -129,7 +129,7 @@ export const WriteReference = () => {
           Apple Music
           <input
             type="url"
-            name="url"
+            name="apple_music"
             value={reference.apple_music as string}
             pattern=".*music\.apple.+"
             placeholder="https://music.apple.com"
@@ -137,19 +137,31 @@ export const WriteReference = () => {
         </label>
         <label>
           Spotify
-          <input type="url" name="url" value={reference.spotify as string} />
+          <input
+            type="url"
+            name="spotify"
+            value={reference.spotify as string}
+          />
         </label>
         <label>
           Tidal
-          <input type="url" name="url" value={reference.tidal as string} />
+          <input type="url" name="tidal" value={reference.tidal as string} />
         </label>
         <label>
           Discogs
-          <input type="url" name="url" value={reference.discogs as string} />
+          <input
+            type="url"
+            name="discogs"
+            value={reference.discogs as string}
+          />
         </label>
         <label>
           Goodreads
-          <input type="url" name="url" value={reference.goodreads as string} />
+          <input
+            type="url"
+            name="goodreads"
+            value={reference.goodreads as string}
+          />
         </label>
 
         {status.m && (
