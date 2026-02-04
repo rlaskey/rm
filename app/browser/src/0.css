@@ -24,7 +24,7 @@ header {
   margin-bottom: 2rem;
 }
 
-menu {
+menu, ul {
   padding-inline-start: 1rem;
   text-indent: -1rem;
   list-style-type: none;
@@ -97,7 +97,7 @@ label {
   display: block;
 }
 
-input, select, textarea, button {
+a, input, select, textarea, button {
   font-size: 16px;
   border-radius: 0.25rem;
   padding: 0.5rem;
@@ -122,8 +122,8 @@ input, select, textarea {
   }
 }
 
-input:invalid {
-  outline: 2px solid #e04040;
+input:invalid, textarea:invalid {
+  outline: 1px solid #e04040;
 }
 
 summary::marker {

@@ -1,16 +1,17 @@
 import { useEffect, useState } from "preact/hooks";
 import { useLocation, useRoute } from "preact-iso/router";
 
-import { anArticle, dateToLocal } from "../data.ts";
-
 import { cborDecode } from "../../src/cbor-decode.ts";
 import { cborRequestInit } from "../../src/cbor-encode.ts";
+
+import { anArticle, dateToLocal } from "../src/data.ts";
+import { Status, statusState } from "../src/status.tsx";
 
 export const WriteArticle = () => {
   const [article, setArticle] = useState(
     {} as Record<string, typeof anArticle.valueType>,
   );
-  const [status, setStatus] = useState({ m: "", c: "", d: new Date() });
+  const [status, setStatus] = useState(statusState());
 
   const location = useLocation();
   const route = useRoute();
@@ -31,7 +32,7 @@ export const WriteArticle = () => {
 
   const submit = (event: Event) => {
     event.preventDefault();
-    setStatus({ m: "", c: "", d: new Date() });
+    setStatus(statusState());
     const form = event.currentTarget as HTMLFormElement;
 
     if (article.id) {
@@ -49,7 +50,7 @@ export const WriteArticle = () => {
       });
 
       if (!payload.size) {
-        setStatus({ m: "Nothing to save.", c: "warning", d: new Date() });
+        setStatus(statusState("Nothing to save.", "warning"));
         return;
       }
 
@@ -64,9 +65,9 @@ export const WriteArticle = () => {
             typeof anArticle.valueType
           >,
         );
-        setStatus({ m: "Saved.", c: "info", d: new Date() });
+        setStatus(statusState("Saved."));
       }).catch((e: Error) => {
-        setStatus({ m: String(e.message || e), c: "error", d: new Date() });
+        setStatus(statusState(String(e.message || e), "error"));
       });
     } else {
       const payload = new Map<string, string | bigint | null>();
@@ -82,7 +83,7 @@ export const WriteArticle = () => {
           const d = cborDecode(await res.bytes()) as number | bigint;
           location.route("/w/article/" + d);
         }).catch((e) =>
-          setStatus({ m: String(e.message || e), c: "error", d: new Date() })
+          setStatus(statusState(String(e.message || e), "error"))
         );
     }
   };
@@ -91,8 +92,8 @@ export const WriteArticle = () => {
     <>
       <h1>Article{article.id && "/" + article.id}</h1>
       <form onSubmit={submit}>
-        <textarea required name="markdown" rows={7}>
-          {article.markdown}
+        <textarea required name="words" rows={7}>
+          {article.words}
         </textarea>
 
         <label>
@@ -109,10 +110,7 @@ export const WriteArticle = () => {
           <input type="text" name="title" value={article.title as string} />
         </label>
 
-        {status.m && (
-          <p class={status.c}>{dateToLocal(status.d)} -- {status.m}</p>
-        )}
-
+        <Status {...status} />
         <p>
           <button type="submit">Save</button>
         </p>

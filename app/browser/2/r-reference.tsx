@@ -1,13 +1,17 @@
 import { useEffect, useState } from "preact/hooks";
 import { useLocation, useRoute } from "preact-iso/router";
 
-import { aReference } from "../data.ts";
-
 import { cborDecode } from "../../src/cbor-decode.ts";
+import { SupportedArraysCBOR } from "../../src/cbor.ts";
+
+import { aLabeledURL, aReference } from "../src/data.ts";
 
 export const ReadReference = () => {
   const [reference, setReference] = useState(
     {} as Record<string, typeof aReference.valueType>,
+  );
+  const [labeledURLs, setlabeledURLs] = useState(
+    [] as Record<string, typeof aLabeledURL.valueType>[],
   );
 
   const location = useLocation();
@@ -15,13 +19,25 @@ export const ReadReference = () => {
 
   useEffect(() => {
     if (route.params.id) {
-      fetch("/2/reference/" + String(BigInt(route.params.id))).then(
+      fetch("/2/reference/" + route.params.id).then(
         async (res) =>
           setReference(
             aReference.networkToState(cborDecode(await res.bytes())) as Record<
               string,
               typeof aReference.valueType
             >,
+          ),
+      );
+
+      fetch("/2/urls/" + route.params.id).then(
+        async (res) =>
+          setlabeledURLs(
+            (cborDecode(await res.bytes()) as SupportedArraysCBOR).map((x) =>
+              aLabeledURL.networkToState(x) as Record<
+                string,
+                typeof aLabeledURL.valueType
+              >
+            ),
           ),
       );
     }
@@ -33,13 +49,16 @@ export const ReadReference = () => {
 
       <h2>{reference.name}</h2>
 
-      {aReference.schema.filter((c) =>
-        c.options.has("null") && c.t === "string" && reference[c.name]
-      ).map((c) => (
-        <p key={c.name}>
-          <a href={reference[c.name] as string}>{reference[c.name]}</a>
-        </p>
-      ))}
+      <ul>
+        {labeledURLs.map((u) => (
+          <li key={u.id}>
+            <a href={u.id as string}>
+              {(new URL(u.id as string)).host}
+            </a>
+            {u.label}
+          </li>
+        ))}
+      </ul>
     </>
   );
 };

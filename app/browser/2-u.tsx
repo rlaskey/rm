@@ -5,7 +5,7 @@ import { signal } from "@preact/signals";
 import { cborRequestInit } from "../src/cbor-encode.ts";
 import { cborDecode } from "../src/cbor-decode.ts";
 
-import { dateToLocal } from "./data.ts";
+import { Status, statusState } from "./src/status.tsx";
 
 const me = signal({ name: "", write: false });
 const passkeys = signal<string[]>([]);
@@ -58,7 +58,7 @@ const Passkeys = () => {
 };
 
 const User = () => {
-  const [status, setStatus] = useState({ m: "", c: "", d: new Date() });
+  const [status, setStatus] = useState(statusState());
 
   useEffect(() => {
     fetch("/2/me").then(async (res) => {
@@ -80,7 +80,7 @@ const User = () => {
     const name = (form.elements.namedItem("name") as HTMLInputElement).value;
 
     if (me.value.name === name) {
-      setStatus({ m: "Nothing to save.", c: "warning", d: new Date() });
+      setStatus(statusState("Nothing to save.", "warning"));
       return;
     }
 
@@ -89,13 +89,9 @@ const User = () => {
 
       const d = cborDecode(await res.bytes()) as Map<string, string>;
       me.value = { ...me.value, name: d.get("name") as string };
-      setStatus({ m: "Saved.", c: "info", d: new Date() });
+      setStatus(statusState("Saved."));
     }).catch((error: Error) =>
-      setStatus({
-        m: String(error.message || error),
-        c: "error",
-        d: new Date(),
-      })
+      setStatus(statusState(String(error.message || error), "error"))
     );
   };
 
@@ -139,10 +135,7 @@ const User = () => {
             value={me.value.name}
           />
 
-          {status.m && (
-            <p class={status.c}>{dateToLocal(status.d)} -- {status.m}</p>
-          )}
-
+          <Status {...status} />
           <p>
             <button type="submit">Save</button>
           </p>

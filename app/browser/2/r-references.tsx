@@ -3,7 +3,7 @@ import { useEffect, useState } from "preact/hooks";
 import { cborDecode } from "../../src/cbor-decode.ts";
 import { SupportedArraysCBOR } from "../../src/cbor.ts";
 
-import { aReference } from "../data.ts";
+import { aReference } from "../src/data.ts";
 
 export const References = (props: { p: string } = { p: "/r/r/" }) => {
   const [references, setReferences] = useState<

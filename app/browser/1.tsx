@@ -2,7 +2,7 @@ import { render } from "preact";
 import { useState } from "preact/hooks";
 
 // NOTE: we will use this for other routes. Doing this here allows the bundler to process it.
-import "./0.css";
+import "./src/0.css";
 
 const Layer1 = () => {
   const [attempted, setAttempted] = useState(false);

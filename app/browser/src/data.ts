@@ -1,4 +1,4 @@
-import { SupportedCBOR, SupportedMapsCBOR } from "../src/cbor.ts";
+import { SupportedCBOR, SupportedMapsCBOR } from "../../src/cbor.ts";
 
 type Option = "autoincrement" | "null";
 
@@ -100,28 +100,34 @@ abstract class Model {
   };
 }
 
-class Reference extends Model {
+class LabeledURL extends Model {
   public override get schema() {
     return [
-      new Column("id", "string", new Set(["autoincrement"])),
-      new Column("name", "string"),
-
-      new Column("url", "string", new Set(["null"])),
-      new Column("wikipedia", "string", new Set(["null"])),
-
-      new Column("bandcamp", "string", new Set(["null"])),
-      new Column("apple_music", "string", new Set(["null"])),
-      new Column("spotify", "string", new Set(["null"])),
-      new Column("tidal", "string", new Set(["null"])),
-      new Column("discogs", "string", new Set(["null"])),
-
-      new Column("goodreads", "string", new Set(["null"])),
+      new Column("id", "string"),
+      new Column("reference_id", "bigint"),
+      new Column("label", "string", new Set(["null"])),
     ];
   }
 
   declare public readonly valueType:
-    | number
     | bigint
+    | string
+    | undefined;
+}
+
+export const aLabeledURL = new LabeledURL();
+
+class Reference extends Model {
+  public override get schema() {
+    return [
+      new Column("id", "bigint", new Set(["autoincrement"])),
+      new Column("name", "string"),
+    ];
+  }
+
+  declare public readonly valueType:
+    | bigint
+    | number
     | string
     | null
     | undefined;
@@ -133,7 +139,7 @@ class Article extends Model {
   public override get schema() {
     return [
       new Column("id", "bigint", new Set(["autoincrement"])),
-      new Column("markdown", "string"),
+      new Column("words", "string"),
       new Column("published", "timestamp", new Set(["null"])),
       new Column("title", "string", new Set(["null"])),
     ];
@@ -141,7 +147,6 @@ class Article extends Model {
 
   declare public readonly valueType:
     | string
-    | number
     | bigint
     | Date
     | null

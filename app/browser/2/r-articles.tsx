@@ -3,7 +3,8 @@ import { useEffect, useState } from "preact/hooks";
 import { cborDecode } from "../../src/cbor-decode.ts";
 import { SupportedArraysCBOR } from "../../src/cbor.ts";
 
-import { anArticle, dateToLocal } from "../data.ts";
+import { anArticle, dateToLocal } from "../src/data.ts";
+
 import { References } from "./r-references.tsx";
 
 export const Articles = (
@@ -38,7 +39,7 @@ export const Articles = (
               </a>
               {a.published && " -- " + dateToLocal(a.published as Date)}
               {a.title && " -- " + a.title}
-              {a.markdown && " -- " + a.markdown}
+              {a.words && " -- " + a.words}
             </li>
           ))}
       </menu>

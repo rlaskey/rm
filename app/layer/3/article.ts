@@ -1,9 +1,10 @@
-import { anArticle } from "../../browser/data.ts";
 import { cborDecode } from "../../src/cbor-decode.ts";
 import { cborResponse } from "../../src/cbor-encode.ts";
 import { Middleware } from "../../src/framework.ts";
 import { db } from "../../src/sqlite.ts";
 import { getId } from "../../src/url.ts";
+
+import { anArticle } from "../../browser/src/data.ts";
 
 export const insertArticle: Middleware = async (ctx, _) => {
   const r = cborDecode(await ctx.req.bytes());

@@ -1,9 +1,9 @@
 import { useEffect, useState } from "preact/hooks";
 import { useLocation, useRoute } from "preact-iso/router";
 
-import { anArticle, dateToLocal } from "../data.ts";
-
 import { cborDecode } from "../../src/cbor-decode.ts";
+
+import { anArticle, dateToLocal } from "../src/data.ts";
 
 export const ReadArticle = () => {
   const [article, setArticle] = useState(
@@ -34,7 +34,7 @@ export const ReadArticle = () => {
         {dateToLocal(article.published as Date) || "DRAFT"} {article.title}
       </h2>
 
-      <pre>{article.markdown}</pre>
+      <pre>{article.words}</pre>
     </>
   );
 };

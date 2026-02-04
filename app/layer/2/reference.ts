@@ -13,3 +13,9 @@ export const getReference: Middleware = (ctx, _) => {
 
   ctx.res = cborResponse(r);
 };
+
+export const getURLs: Middleware = (ctx, _) => {
+  const referenceId = getId("/2/urls/", ctx.url.pathname);
+  using stmt = db.prepare("SELECT id, label FROM url WHERE reference_id = ?");
+  ctx.res = cborResponse(stmt.all(referenceId));
+};

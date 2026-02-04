@@ -26,11 +26,8 @@ const up = (id: number): string | null => {
 let current;
 while ((current = up(++version))) {
   console.log(`Running migration: ${version}.`);
-
-  (db.transaction((script: string) => {
-    db.exec(script);
-    db.exec(`UPDATE migrate SET v = ${version} WHERE id = 1`);
-  }))(current);
+  db.exec(current);
+  db.exec(`UPDATE migrate SET v = ${version} WHERE id = 1`);
 }
 
 db.close();

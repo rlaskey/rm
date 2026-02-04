@@ -1,16 +1,55 @@
 import { useEffect, useState } from "preact/hooks";
 import { useLocation, useRoute } from "preact-iso/router";
 
-import { aReference, dateToLocal } from "../data.ts";
-
 import { cborDecode } from "../../src/cbor-decode.ts";
 import { cborRequestInit } from "../../src/cbor-encode.ts";
+
+import { aReference } from "../src/data.ts";
+import { Status, statusState } from "../src/status.tsx";
+
+import { LabeledURLs } from "./w-reference/url.tsx";
+
+const LinkArticles = () => {
+  const [results, setResults] = useState([]);
+
+  const search = (event: Event) => {
+    event.preventDefault();
+
+    setResults([]);
+    const search = ((event.currentTarget as HTMLFormElement).elements.namedItem(
+      "search",
+    ) as HTMLInputElement).value;
+    if (!search) return;
+  };
+
+  return (
+    <>
+      <h3>Articles</h3>
+
+      <form onSubmit={search}>
+        <label>
+          Search
+          <input type="search" name="search" placeholder="SOON" />
+        </label>
+      </form>
+
+      {results.map((e) => <p key={e}>{e}</p>)}
+    </>
+  );
+};
+
+const Links = () => (
+  <>
+    <h2>Links</h2>
+    <LinkArticles />
+  </>
+);
 
 export const WriteReference = () => {
   const [reference, setReference] = useState(
     {} as Record<string, typeof aReference.valueType>,
   );
-  const [status, setStatus] = useState({ m: "", c: "", d: new Date() });
+  const [status, setStatus] = useState(statusState());
 
   const location = useLocation();
   const route = useRoute();
@@ -31,7 +70,7 @@ export const WriteReference = () => {
 
   const submit = (event: Event) => {
     event.preventDefault();
-    setStatus({ m: "", c: "", d: new Date() });
+    setStatus(statusState(""));
     const form = event.currentTarget as HTMLFormElement;
 
     if (reference.id) {
@@ -42,15 +81,14 @@ export const WriteReference = () => {
           | null;
         if (!element) return;
 
-        const now = c.browserToNetwork(element.value) as string | null;
-        if (now === reference[c.name]) return;
+        const n = c.browserToNetwork(element.value) as string | null;
+        if (n === reference[c.name]) return;
 
-        payload.set(c.name, now);
+        payload.set(c.name, n);
       });
 
       if (!payload.size) {
-        setStatus({ m: "Nothing to save.", c: "warning", d: new Date() });
-        return;
+        return setStatus(statusState("Nothing to save.", "warning"));
       }
 
       fetch(
@@ -64,9 +102,9 @@ export const WriteReference = () => {
             typeof aReference.valueType
           >,
         );
-        setStatus({ m: "Saved.", c: "info", d: new Date() });
+        setStatus(statusState("Saved."));
       }).catch((e: Error) => {
-        setStatus({ m: String(e.message || e), c: "error", d: new Date() });
+        setStatus(statusState(String(e.message || e), "error"));
       });
     } else {
       const payload = new Map<string, string | bigint | null>();
@@ -82,7 +120,7 @@ export const WriteReference = () => {
           const d = cborDecode(await res.bytes()) as number | bigint;
           location.route("/w/reference/" + d);
         }).catch((e) =>
-          setStatus({ m: String(e.message || e), c: "error", d: new Date() })
+          setStatus(statusState(String(e.message || e), "error"))
         );
     }
   };
@@ -101,77 +139,20 @@ export const WriteReference = () => {
           />
         </label>
 
-        <label>
-          URL
-          <input type="url" name="url" value={reference.url as string} />
-        </label>
-        <label>
-          Wikipedia
-          <input
-            type="url"
-            name="wikipedia"
-            value={reference.wikipedia as string}
-            pattern=".+wikipedia.+"
-            placeholder="https://en.wikipedia.org"
-          />
-        </label>
-        <label>
-          Bandcamp
-          <input
-            type="url"
-            name="bandcamp"
-            value={reference.bandcamp as string}
-            pattern=".+bandcamp.+"
-            placeholder="https://bandcamp.com"
-          />
-        </label>
-        <label>
-          Apple Music
-          <input
-            type="url"
-            name="apple_music"
-            value={reference.apple_music as string}
-            pattern=".*music\.apple.+"
-            placeholder="https://music.apple.com"
-          />
-        </label>
-        <label>
-          Spotify
-          <input
-            type="url"
-            name="spotify"
-            value={reference.spotify as string}
-          />
-        </label>
-        <label>
-          Tidal
-          <input type="url" name="tidal" value={reference.tidal as string} />
-        </label>
-        <label>
-          Discogs
-          <input
-            type="url"
-            name="discogs"
-            value={reference.discogs as string}
-          />
-        </label>
-        <label>
-          Goodreads
-          <input
-            type="url"
-            name="goodreads"
-            value={reference.goodreads as string}
-          />
-        </label>
-
-        {status.m && (
-          <p class={status.c}>{dateToLocal(status.d)} -- {status.m}</p>
-        )}
-
+        <Status {...status} />
         <p>
           <button type="submit">Save</button>
         </p>
       </form>
+
+      {reference.id && (
+        <>
+          <hr />
+          <LabeledURLs referenceId={String(reference.id)} />
+          <hr />
+          <Links />
+        </>
+      )}
     </>
   );
 };
