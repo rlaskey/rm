@@ -1,4 +1,4 @@
-import { useEffect, useState } from "preact/hooks";
+import { useState } from "preact/hooks";
 
 import { SupportedArraysCBOR } from "../../../src/cbor.ts";
 import { cborDecode } from "../../../src/cbor-decode.ts";
@@ -7,24 +7,16 @@ import { cborRequestInit } from "../../../src/cbor-encode.ts";
 import { aLabeledURL } from "../../src/data.ts";
 import { Status, statusState } from "../../src/status.tsx";
 
-export const LabeledURLs = (props: { referenceId: string }) => {
-  const [labeledURLs, setlabeledURLs] = useState(
-    [] as Record<string, typeof aLabeledURL.valueType>[],
-  );
+export const LabeledURLs = (
+  props: {
+    referenceId: string;
+    labeledURLs: Record<string, typeof aLabeledURL.valueType>[];
+  },
+) => {
+  const [labeledURLs, setlabeledURLs] = useState<
+    Record<string, typeof aLabeledURL.valueType>[]
+  >(props.labeledURLs);
   const [status, setStatus] = useState(statusState());
-
-  useEffect(() => {
-    fetch("/2/urls/" + props.referenceId).then(async (res) =>
-      setlabeledURLs(
-        (cborDecode(await res.bytes()) as SupportedArraysCBOR).map((x) =>
-          aLabeledURL.networkToState(x) as Record<
-            string,
-            typeof aLabeledURL.valueType
-          >
-        ),
-      )
-    );
-  }, []);
 
   const submit = (event: Event) => {
     event.preventDefault();

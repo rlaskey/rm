@@ -35,7 +35,7 @@ export const Articles = (
           articles.map((a) => (
             <li key={a.id}>
               <a href={props.p + a.id}>
-                #{String(a.id).padStart(3, "0")}
+                #{String(a.id).padStart(4, "0")}
               </a>
               {a.published && " -- " + dateToLocal(a.published as Date)}
               {a.title && " -- " + a.title}

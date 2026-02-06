@@ -1,5 +1,4 @@
-import { useEffect, useState } from "preact/hooks";
-import { useLocation, useRoute } from "preact-iso/router";
+import { useState } from "preact/hooks";
 
 import { cborDecode } from "../../src/cbor-decode.ts";
 import { cborRequestInit } from "../../src/cbor-encode.ts";
@@ -7,66 +6,20 @@ import { cborRequestInit } from "../../src/cbor-encode.ts";
 import { aReference } from "../src/data.ts";
 import { Status, statusState } from "../src/status.tsx";
 
+import { Links } from "./w-reference/links.tsx";
 import { LabeledURLs } from "./w-reference/url.tsx";
-
-const LinkArticles = () => {
-  const [results, setResults] = useState([]);
-
-  const search = (event: Event) => {
-    event.preventDefault();
-
-    setResults([]);
-    const search = ((event.currentTarget as HTMLFormElement).elements.namedItem(
-      "search",
-    ) as HTMLInputElement).value;
-    if (!search) return;
-  };
-
-  return (
-    <>
-      <h3>Articles</h3>
-
-      <form onSubmit={search}>
-        <label>
-          Search
-          <input type="search" name="search" placeholder="SOON" />
-        </label>
-      </form>
-
-      {results.map((e) => <p key={e}>{e}</p>)}
-    </>
-  );
-};
-
-const Links = () => (
-  <>
-    <h2>Links</h2>
-    <LinkArticles />
-  </>
-);
+import { useReference } from "../src/reference.ts";
 
 export const WriteReference = () => {
-  const [reference, setReference] = useState(
-    {} as Record<string, typeof aReference.valueType>,
-  );
+  const {
+    articles,
+    labeledURLs,
+    location,
+    reference,
+    references,
+    setReference,
+  } = useReference();
   const [status, setStatus] = useState(statusState());
-
-  const location = useLocation();
-  const route = useRoute();
-
-  useEffect(() => {
-    if (route.params.id) {
-      fetch("/2/reference/" + String(BigInt(route.params.id))).then(
-        async (res) =>
-          setReference(
-            aReference.networkToState(cborDecode(await res.bytes())) as Record<
-              string,
-              typeof aReference.valueType
-            >,
-          ),
-      );
-    }
-  }, [location.url]);
 
   const submit = (event: Event) => {
     event.preventDefault();
@@ -148,9 +101,15 @@ export const WriteReference = () => {
       {reference.id && (
         <>
           <hr />
-          <LabeledURLs referenceId={String(reference.id)} />
+          <LabeledURLs
+            referenceId={reference.id as string}
+            labeledURLs={labeledURLs}
+          />
           <hr />
-          <Links />
+          <Links
+            referenceId={reference.id as number}
+            {...{ articles, references }}
+          />
         </>
       )}
     </>

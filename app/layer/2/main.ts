@@ -1,11 +1,11 @@
 import { compose, Middleware } from "../../src/framework.ts";
 
-import { getArticle } from "./article.ts";
+import { getArticle, searchArticle } from "./article.ts";
 import { claim } from "./claim.ts";
 import { articleDrafts, articlePublished, references } from "./index.ts";
 import { meGET, mePOST } from "./me.ts";
 import { r } from "./r.tsx";
-import { getReference, getURLs } from "./reference.ts";
+import { getReference } from "./reference.ts";
 import { u } from "./u.tsx";
 
 import { layer3 } from "../3/main.ts";
@@ -51,14 +51,12 @@ const router: Middleware = async (ctx, next) => {
     if (ctx.url.pathname.startsWith("/2/reference/")) {
       return await getReference(ctx, next);
     }
-    if (ctx.url.pathname.startsWith("/2/urls/")) {
-      return await getURLs(ctx, next);
-    }
 
     if (ctx.url.pathname === "/2/me") return await meGET(ctx, next);
     if (ctx.url.pathname === "/2/claim") return await claim(ctx, next);
   } else if (ctx.req.method === "POST") {
     if (ctx.url.pathname === "/2/me") return await mePOST(ctx, next);
+    if (ctx.url.pathname === "/2/q/a") return await searchArticle(ctx, next);
   }
 
   await next();

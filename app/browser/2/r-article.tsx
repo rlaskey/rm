@@ -6,9 +6,9 @@ import { cborDecode } from "../../src/cbor-decode.ts";
 import { anArticle, dateToLocal } from "../src/data.ts";
 
 export const ReadArticle = () => {
-  const [article, setArticle] = useState(
-    {} as Record<string, typeof anArticle.valueType>,
-  );
+  const [article, setArticle] = useState<
+    Record<string, typeof anArticle.valueType>
+  >({});
 
   const location = useLocation();
   const route = useRoute();
@@ -27,11 +27,13 @@ export const ReadArticle = () => {
     }
   }, [location.url]);
 
-  return (
+  return article.id && (
     <>
-      <h1>Article{article.id && "/" + article.id}</h1>
+      <h1>
+        {article.title || "Article #" + String(article.id).padStart(4, "0")}
+      </h1>
       <h2>
-        {dateToLocal(article.published as Date) || "DRAFT"} {article.title}
+        {dateToLocal(article.published as Date) || "DRAFT"}
       </h2>
 
       <pre>{article.words}</pre>

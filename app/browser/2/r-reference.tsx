@@ -1,64 +1,63 @@
-import { useEffect, useState } from "preact/hooks";
-import { useLocation, useRoute } from "preact-iso/router";
-
-import { cborDecode } from "../../src/cbor-decode.ts";
-import { SupportedArraysCBOR } from "../../src/cbor.ts";
-
-import { aLabeledURL, aReference } from "../src/data.ts";
+import { useReference } from "../src/reference.ts";
 
 export const ReadReference = () => {
-  const [reference, setReference] = useState(
-    {} as Record<string, typeof aReference.valueType>,
-  );
-  const [labeledURLs, setlabeledURLs] = useState(
-    [] as Record<string, typeof aLabeledURL.valueType>[],
-  );
+  const {
+    articles,
+    labeledURLs,
+    reference,
+    references,
+  } = useReference();
 
-  const location = useLocation();
-  const route = useRoute();
-
-  useEffect(() => {
-    if (route.params.id) {
-      fetch("/2/reference/" + route.params.id).then(
-        async (res) =>
-          setReference(
-            aReference.networkToState(cborDecode(await res.bytes())) as Record<
-              string,
-              typeof aReference.valueType
-            >,
-          ),
-      );
-
-      fetch("/2/urls/" + route.params.id).then(
-        async (res) =>
-          setlabeledURLs(
-            (cborDecode(await res.bytes()) as SupportedArraysCBOR).map((x) =>
-              aLabeledURL.networkToState(x) as Record<
-                string,
-                typeof aLabeledURL.valueType
-              >
-            ),
-          ),
-      );
-    }
-  }, [location.url]);
-
-  return (
+  return reference.id && (
     <>
-      <h1>Reference{reference.id && "/" + reference.id}</h1>
-
-      <h2>{reference.name}</h2>
+      <h1>{reference.name}</h1>
 
       <ul>
         {labeledURLs.map((u) => (
           <li key={u.id}>
             <a href={u.id as string}>
               {(new URL(u.id as string)).host}
-            </a>
+            </a>{" "}
             {u.label}
           </li>
         ))}
       </ul>
+
+      {articles.length > 0 && (
+        <>
+          <hr />
+          <h2>Links: Articles</h2>
+
+          <ul>
+            {articles.map((a) => (
+              <li key={a.id}>
+                <a href={"/r/a/" + a.id}>
+                  #{String(a.id).padStart(4, "0")}
+                </a>{" "}
+                {a.title && " -- " + a.title}
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
+
+      {references.length > 0 && (
+        <>
+          <hr />
+          <h2>Links: References</h2>
+
+          <ul>
+            {references.map((r) => (
+              <li key={r.id}>
+                <a href={"/r/r/" + r.id}>
+                  #{String(r.id).padStart(4, "0")}
+                </a>{" "}
+                {r.name && " -- " + r.name}
+              </li>
+            ))}
+          </ul>
+        </>
+      )}
     </>
   );
 };

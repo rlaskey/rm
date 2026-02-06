@@ -31,7 +31,7 @@ export const References = (props: { p: string } = { p: "/r/r/" }) => {
           references.map((r) => (
             <li key={r.id}>
               <a href={props.p + r.id}>
-                #{String(r.id).padStart(3, "0")}
+                #{String(r.id).padStart(4, "0")}
               </a>{" "}
               {r.name}
             </li>

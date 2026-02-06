@@ -1,6 +1,7 @@
 import { compose, Middleware } from "../../src/framework.ts";
 
 import { insertArticle, updateArticle } from "./article.ts";
+import { articleReference, articleReferenceDelete } from "./links.ts";
 import { insertReference, updateReference } from "./reference.ts";
 import { postURL } from "./url.ts";
 import { w } from "./w.tsx";
@@ -28,6 +29,14 @@ const router: Middleware = async (ctx, next) => {
     }
     if (ctx.url.pathname === "/3/url") {
       return await postURL(ctx, next);
+    }
+
+    if (ctx.url.pathname == "/3/articleReference") {
+      return articleReference(ctx, next);
+    }
+  } else if (ctx.req.method === "DELETE") {
+    if (ctx.url.pathname == "/3/articleReference") {
+      return articleReferenceDelete(ctx, next);
     }
   }
 
