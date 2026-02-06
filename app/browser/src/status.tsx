@@ -7,6 +7,6 @@ export const statusState = (m: string = "", c: statusClass = "info") => {
 
 export const Status = (props = statusState()) => (
   <>
-    {props.m && <p class={props.c}>{dateToLocal(props.d)} -- {props.m}</p>}
+    {props.m && <p className={props.c}>{dateToLocal(props.d)} -- {props.m}</p>}
   </>
 );

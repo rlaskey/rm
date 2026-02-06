@@ -16,7 +16,7 @@ const Header = () => {
   return (
     <header>
       <nav>
-        <menu class="inline">
+        <menu className="inline">
           <li aria-hidden="true">📖</li>
           {location.url !== "/r" && (
             <li>

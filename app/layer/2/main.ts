@@ -5,7 +5,7 @@ import { claim } from "./claim.ts";
 import { articleDrafts, articlePublished, references } from "./index.ts";
 import { meGET, mePOST } from "./me.ts";
 import { r } from "./r.tsx";
-import { getReference } from "./reference.ts";
+import { getReference, searchReference } from "./reference.ts";
 import { u } from "./u.tsx";
 
 import { layer3 } from "../3/main.ts";
@@ -57,6 +57,7 @@ const router: Middleware = async (ctx, next) => {
   } else if (ctx.req.method === "POST") {
     if (ctx.url.pathname === "/2/me") return await mePOST(ctx, next);
     if (ctx.url.pathname === "/2/q/a") return await searchArticle(ctx, next);
+    if (ctx.url.pathname === "/2/q/r") return await searchReference(ctx, next);
   }
 
   await next();

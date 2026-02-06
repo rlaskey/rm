@@ -21,3 +21,24 @@ export const articleReference: Middleware = async (ctx, _) => {
   );
   ctx.res = cborResponse(stmt0.run(r.get("article_id"), r.get("reference_id")));
 };
+
+export const referencePairDelete: Middleware = (ctx, _) => {
+  const sorted = [...new Set(ctx.url.searchParams.getAll("id"))]
+    .map((id) => Number(id)).sort();
+  if (sorted.length !== 2) return;
+
+  using stmt0 = db.prepare("DELETE FROM reference_pair WHERE a = ? AND b = ?");
+  ctx.res = cborResponse(stmt0.run([...sorted]));
+};
+
+export const referencePair: Middleware = async (ctx, _) => {
+  const r = cborDecode(await ctx.req.bytes()) as [number, number];
+  if (!Array.isArray(r)) return;
+  const sorted = [...new Set(r)].sort();
+  if (sorted.length !== 2) return;
+
+  using stmt0 = db.prepare(
+    "INSERT OR IGNORE INTO reference_pair (a, b) VALUES (?, ?)",
+  );
+  ctx.res = cborResponse(stmt0.run([...sorted]));
+};

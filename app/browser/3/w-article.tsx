@@ -8,9 +8,9 @@ import { anArticle, dateToLocal } from "../src/data.ts";
 import { Status, statusState } from "../src/status.tsx";
 
 export const WriteArticle = () => {
-  const [article, setArticle] = useState(
-    {} as Record<string, typeof anArticle.valueType>,
-  );
+  const [article, setArticle] = useState<
+    Record<string, typeof anArticle.valueType>
+  >({});
   const [status, setStatus] = useState(statusState());
 
   const location = useLocation();
@@ -90,7 +90,7 @@ export const WriteArticle = () => {
 
   return (
     <>
-      <h1>Article{article.id && "/" + article.id}</h1>
+      <h1>Article{article.id && "/" + String(article.id).padStart(4, "0")}</h1>
       <form onSubmit={submit}>
         <textarea required name="words" rows={7}>
           {article.words}

@@ -60,7 +60,7 @@ const Layer1 = () => {
     <>
       <header>
         <nav>
-          <menu class="inline">
+          <menu className="inline">
             <li aria-hidden="true">👋</li>
             {attempted &&
               (
@@ -85,7 +85,7 @@ const Layer1 = () => {
         </button>
       </p>
 
-      {getError && <p class="error">{getError}</p>}
+      {getError && <p className="error">{getError}</p>}
 
       {attempted && (
         <>
@@ -104,7 +104,7 @@ const Layer1 = () => {
             <label>
               Name
               <input
-                class="flex-1"
+                className="flex-1"
                 name="name"
                 placeholder="Your Name"
                 required
@@ -118,7 +118,7 @@ const Layer1 = () => {
             </p>
           </form>
 
-          {createError && <p class="error">{createError}</p>}
+          {createError && <p className="error">{createError}</p>}
         </>
       )}
     </>

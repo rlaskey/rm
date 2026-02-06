@@ -80,7 +80,9 @@ export const WriteReference = () => {
 
   return (
     <>
-      <h1>Reference{reference.id && "/" + reference.id}</h1>
+      <h1>
+        Reference{reference.id && "/" + String(reference.id).padStart(4, "0")}
+      </h1>
       <form onSubmit={submit}>
         <label>
           Name

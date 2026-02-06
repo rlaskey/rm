@@ -89,6 +89,10 @@ button {
   }
 }
 
+button.danger {
+  background: #e00000;
+}
+
 summary, label, button, .pointer {
   cursor: pointer;
 }

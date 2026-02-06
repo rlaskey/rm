@@ -46,7 +46,7 @@ const Passkeys = () => {
       <h2>Passkeys</h2>
 
       {passkeys.value.map((p) => <pre key={p}>{p}</pre>)}
-      {error && <p class="error">{error}</p>}
+      {error && <p className="error">{error}</p>}
 
       <p>
         <button type="button" onClick={createPasskey}>
@@ -101,7 +101,7 @@ const User = () => {
     <>
       <header>
         <nav>
-          <menu class="inline">
+          <menu className="inline">
             <li>😁</li>
             <li>
               <a href="/r">Read</a>.
