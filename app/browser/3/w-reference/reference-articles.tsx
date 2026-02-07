@@ -2,20 +2,18 @@ import { useState } from "preact/hooks";
 
 import { cborRequestInit } from "../../../src/cbor-encode.ts";
 import { cborDecode } from "../../../src/cbor-decode.ts";
-
 import { SupportedArraysCBOR } from "../../../src/cbor.ts";
 
-import { anArticle, dateToLocal } from "../../src/data.ts";
+import { anArticle } from "../../src/data.ts";
+import { ArticleA } from "../../src/article.tsx";
 
-export const LinkArticles = (
+export const ReferenceArticles = (
   props: {
-    referenceId: number;
+    referenceId: bigint;
     articles: Record<string, typeof anArticle.valueType>[];
+    setArticles: (value: Record<string, typeof anArticle.valueType>[]) => void;
   },
 ) => {
-  const [saved, setSaved] = useState<
-    Record<string, typeof anArticle.valueType>[]
-  >(props.articles);
   const [found, setFound] = useState<
     Record<string, typeof anArticle.valueType>[]
   >([]);
@@ -24,7 +22,9 @@ export const LinkArticles = (
     fetch(
       `/3/articleReference?articleId=${articleId}&referenceId=${props.referenceId}`,
       { method: "DELETE" },
-    ).then(() => setSaved(saved.filter((s) => s.id !== articleId)));
+    ).then(() =>
+      props.setArticles(props.articles.filter((a) => a.id !== articleId))
+    );
 
   const link = (article: Record<string, typeof anArticle.valueType>) => () =>
     fetch(
@@ -34,7 +34,7 @@ export const LinkArticles = (
         reference_id: props.referenceId,
       }),
     ).then(() => {
-      setSaved([...saved, article]);
+      props.setArticles([...props.articles, article]);
       setFound(found.filter((f) => f.id !== article.id));
     });
 
@@ -46,7 +46,10 @@ export const LinkArticles = (
     ) as HTMLInputElement).value;
     if (!q) return;
 
-    fetch("/2/q/a", cborRequestInit({ q, omit: saved.map((s) => s.id) }))
+    fetch(
+      "/2/q/a",
+      cborRequestInit({ q, omit: props.articles.map((s) => s.id) }),
+    )
       .then(async (res) =>
         setFound(
           (cborDecode(await res.bytes()) as SupportedArraysCBOR).map((a) =>
@@ -61,10 +64,10 @@ export const LinkArticles = (
 
   return (
     <>
-      <h2>Links: Articles</h2>
+      <h2>Related Articles</h2>
 
       <ul>
-        {saved.map((a) => (
+        {props.articles.map((a) => (
           <p key={a.id}>
             <button
               type="button"
@@ -73,10 +76,7 @@ export const LinkArticles = (
             >
               Unlink
             </button>
-            #{a.id}
-            {a.published && " -- " + dateToLocal(a.published as Date)}
-            {a.title && " -- " + a.title}
-            {a.words && " -- " + a.words}
+            <ArticleA prefix="/w/article/" a={a} />
           </p>
         ))}
       </ul>
@@ -90,10 +90,7 @@ export const LinkArticles = (
         {found.map((a) => (
           <p key={a.id}>
             <button type="button" onClick={link(a)}>Link</button>
-            #{a.id}
-            {a.published && " -- " + dateToLocal(a.published as Date)}
-            {a.title && " -- " + a.title}
-            {a.words && " -- " + a.words}
+            <ArticleA prefix="/w/article/" a={a} />
           </p>
         ))}
         <p>

@@ -3,7 +3,8 @@ import { useEffect, useState } from "preact/hooks";
 import { cborDecode } from "../../src/cbor-decode.ts";
 import { SupportedArraysCBOR } from "../../src/cbor.ts";
 
-import { anArticle, dateToLocal } from "../src/data.ts";
+import { anArticle } from "../src/data.ts";
+import { ArticleA } from "../src/article.tsx";
 
 import { References } from "./r-references.tsx";
 
@@ -34,12 +35,7 @@ export const Articles = (
         {articles &&
           articles.map((a) => (
             <li key={a.id}>
-              <a href={props.p + a.id}>
-                #{String(a.id).padStart(4, "0")}
-              </a>
-              {a.published && " -- " + dateToLocal(a.published as Date)}
-              {a.title && " -- " + a.title}
-              {a.words && " -- " + a.words}
+              <ArticleA prefix={props.p} a={a} />
             </li>
           ))}
       </menu>

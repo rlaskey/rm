@@ -5,19 +5,23 @@ import { cborRequestInit } from "../../src/cbor-encode.ts";
 
 import { aReference } from "../src/data.ts";
 import { Status, statusState } from "../src/status.tsx";
+import { useReference } from "../src/use-reference.ts";
 
-import { Links } from "./w-reference/links.tsx";
 import { LabeledURLs } from "./w-reference/url.tsx";
-import { useReference } from "../src/reference.ts";
+import { ReferenceArticles } from "./w-reference/reference-articles.tsx";
+import { PairReferences } from "./w-reference/pair-references.tsx";
 
 export const WriteReference = () => {
   const {
     articles,
+    setArticles,
     labeledURLs,
-    location,
+    setLabeledURLs,
     reference,
-    references,
     setReference,
+    references,
+    setReferences,
+    location,
   } = useReference();
   const [status, setStatus] = useState(statusState());
 
@@ -81,7 +85,7 @@ export const WriteReference = () => {
   return (
     <>
       <h1>
-        Reference{reference.id && "/" + String(reference.id).padStart(4, "0")}
+        Reference{reference.id && ": " + String(reference.id).padStart(4, "0")}
       </h1>
       <form onSubmit={submit}>
         <label>
@@ -105,12 +109,19 @@ export const WriteReference = () => {
           <hr />
           <LabeledURLs
             referenceId={reference.id as string}
-            labeledURLs={labeledURLs}
+            {...{ labeledURLs, setLabeledURLs }}
           />
+
           <hr />
-          <Links
-            referenceId={reference.id as number}
-            {...{ articles, references }}
+          <ReferenceArticles
+            referenceId={BigInt(reference.id)}
+            {...{ articles, setArticles }}
+          />
+
+          <hr />
+          <PairReferences
+            referenceId={BigInt(reference.id)}
+            {...{ references, setReferences }}
           />
         </>
       )}

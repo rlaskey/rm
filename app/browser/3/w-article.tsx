@@ -1,34 +1,27 @@
-import { useEffect, useState } from "preact/hooks";
-import { useLocation, useRoute } from "preact-iso/router";
+import { useState } from "preact/hooks";
 
 import { cborDecode } from "../../src/cbor-decode.ts";
 import { cborRequestInit } from "../../src/cbor-encode.ts";
 
 import { anArticle, dateToLocal } from "../src/data.ts";
 import { Status, statusState } from "../src/status.tsx";
+import { useArticle } from "../src/use-article.ts";
+
+import { PairArticles } from "./w-article/pair-articles.tsx";
+import { ArticleReferences } from "./w-article/article-references.tsx";
 
 export const WriteArticle = () => {
-  const [article, setArticle] = useState<
-    Record<string, typeof anArticle.valueType>
-  >({});
+  const {
+    article,
+    setArticle,
+    articles,
+    setArticles,
+    references,
+    setReferences,
+    location,
+  } = useArticle();
+
   const [status, setStatus] = useState(statusState());
-
-  const location = useLocation();
-  const route = useRoute();
-
-  useEffect(() => {
-    if (route.params.id) {
-      fetch("/2/article/" + String(BigInt(route.params.id))).then(
-        async (res) =>
-          setArticle(
-            anArticle.networkToState(cborDecode(await res.bytes())) as Record<
-              string,
-              typeof anArticle.valueType
-            >,
-          ),
-      );
-    }
-  }, [location.url]);
 
   const submit = (event: Event) => {
     event.preventDefault();
@@ -90,7 +83,7 @@ export const WriteArticle = () => {
 
   return (
     <>
-      <h1>Article{article.id && "/" + String(article.id).padStart(4, "0")}</h1>
+      <h1>Article{article.id && ": " + String(article.id).padStart(4, "0")}</h1>
       <form onSubmit={submit}>
         <textarea required name="words" rows={7}>
           {article.words}
@@ -115,6 +108,22 @@ export const WriteArticle = () => {
           <button type="submit">Save</button>
         </p>
       </form>
+
+      {article.id && (
+        <>
+          <hr />
+          <ArticleReferences
+            articleId={article.id as bigint}
+            {...{ references, setReferences }}
+          />
+
+          <hr />
+          <PairArticles
+            articleId={article.id as bigint}
+            {...{ articles, setArticles }}
+          />
+        </>
+      )}
     </>
   );
 };

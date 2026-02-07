@@ -1,4 +1,5 @@
-import { useReference } from "../src/reference.ts";
+import { ArticleA } from "../src/article.tsx";
+import { useReference } from "../src/use-reference.ts";
 
 export const ReadReference = () => {
   const {
@@ -26,15 +27,12 @@ export const ReadReference = () => {
       {articles.length > 0 && (
         <>
           <hr />
-          <h2>Links: Articles</h2>
+          <h2>Related Articles</h2>
 
           <ul>
             {articles.map((a) => (
               <li key={a.id}>
-                <a href={"/r/a/" + a.id}>
-                  #{String(a.id).padStart(4, "0")}
-                </a>{" "}
-                {a.title && " -- " + a.title}
+                <ArticleA prefix="/r/a/" a={a} />
               </li>
             ))}
           </ul>
@@ -44,7 +42,7 @@ export const ReadReference = () => {
       {references.length > 0 && (
         <>
           <hr />
-          <h2>Links: References</h2>
+          <h2>Related References</h2>
 
           <ul>
             {references.map((r) => (
@@ -52,7 +50,7 @@ export const ReadReference = () => {
                 <a href={"/r/r/" + r.id}>
                   #{String(r.id).padStart(4, "0")}
                 </a>{" "}
-                {r.name && " -- " + r.name}
+                {r.name}
               </li>
             ))}
           </ul>

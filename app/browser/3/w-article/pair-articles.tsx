@@ -2,37 +2,37 @@ import { useState } from "preact/hooks";
 
 import { cborRequestInit } from "../../../src/cbor-encode.ts";
 import { cborDecode } from "../../../src/cbor-decode.ts";
-
 import { SupportedArraysCBOR } from "../../../src/cbor.ts";
 
-import { aReference } from "../../src/data.ts";
+import { anArticle } from "../../src/data.ts";
+import { ArticleA } from "../../src/article.tsx";
 
-export const LinkReferences = (
+export const PairArticles = (
   props: {
-    referenceId: number;
-    references: Record<string, typeof aReference.valueType>[];
+    articleId: bigint;
+    articles: Record<string, typeof anArticle.valueType>[];
+    setArticles: (value: Record<string, typeof anArticle.valueType>[]) => void;
   },
 ) => {
-  const [saved, setSaved] = useState<
-    Record<string, typeof aReference.valueType>[]
-  >(props.references);
   const [found, setFound] = useState<
-    Record<string, typeof aReference.valueType>[]
+    Record<string, typeof anArticle.valueType>[]
   >([]);
 
-  const unpair = (referenceId: bigint) => () =>
+  const unpair = (articleId: bigint) => () =>
     fetch(
-      `/3/referencePair?id=${referenceId}&id=${props.referenceId}`,
+      `/3/articlePair?id=${articleId}&id=${props.articleId}`,
       { method: "DELETE" },
-    ).then(() => setSaved(saved.filter((s) => s.id !== referenceId)));
+    ).then(() =>
+      props.setArticles(props.articles.filter((a) => a.id !== articleId))
+    );
 
-  const pair = (reference: Record<string, typeof aReference.valueType>) => () =>
+  const pair = (article: Record<string, typeof anArticle.valueType>) => () =>
     fetch(
-      "/3/referencePair",
-      cborRequestInit([reference.id, props.referenceId]),
+      "/3/articlePair",
+      cborRequestInit([article.id, props.articleId]),
     ).then(() => {
-      setSaved([...saved, reference]);
-      setFound(found.filter((f) => f.id !== reference.id));
+      props.setArticles([...props.articles, article]);
+      setFound(found.filter((f) => f.id !== article.id));
     });
 
   const search = (event: Event) => {
@@ -44,18 +44,18 @@ export const LinkReferences = (
     if (!q) return;
 
     fetch(
-      "/2/q/r",
+      "/2/q/a",
       cborRequestInit({
         q,
-        omit: [...saved.map((s) => s.id), props.referenceId],
+        omit: [...props.articles.map((a) => a.id), props.articleId],
       }),
     )
       .then(async (res) =>
         setFound(
           (cborDecode(await res.bytes()) as SupportedArraysCBOR).map((a) =>
-            aReference.networkToState(a) as Record<
+            anArticle.networkToState(a) as Record<
               string,
-              typeof aReference.valueType
+              typeof anArticle.valueType
             >
           ),
         )
@@ -64,19 +64,19 @@ export const LinkReferences = (
 
   return (
     <>
-      <h2>Links: References</h2>
+      <h2>Related Articles</h2>
 
       <ul>
-        {saved.map((r) => (
-          <p key={r.id}>
+        {props.articles.map((a) => (
+          <p key={a.id}>
             <button
               type="button"
               className="danger"
-              onClick={unpair(r.id as bigint)}
+              onClick={unpair(a.id as bigint)}
             >
               Unlink
             </button>
-            #{String(r.id).padStart(4, "0")} {r.name}
+            <ArticleA prefix="/w/article/" a={a} />
           </p>
         ))}
       </ul>
@@ -87,12 +87,12 @@ export const LinkReferences = (
           <input type="search" name="search" minLength={1} />
         </label>
 
-        {found.map((r) => (
-          <p key={r.id}>
-            <button type="button" className="danger" onClick={pair(r)}>
+        {found.map((a) => (
+          <p key={a.id}>
+            <button type="button" onClick={pair(a)}>
               Link
             </button>
-            #{String(r.id).padStart(4, "0")} {r.name}
+            <ArticleA prefix="/w/article/" a={a} />
           </p>
         ))}
         <p>

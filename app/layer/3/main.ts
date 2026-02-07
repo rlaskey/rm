@@ -2,6 +2,8 @@ import { compose, Middleware } from "../../src/framework.ts";
 
 import { insertArticle, updateArticle } from "./article.ts";
 import {
+  articlePair,
+  articlePairDelete,
   articleReference,
   articleReferenceDelete,
   referencePair,
@@ -42,12 +44,18 @@ const router: Middleware = async (ctx, next) => {
     if (ctx.url.pathname == "/3/referencePair") {
       return referencePair(ctx, next);
     }
+    if (ctx.url.pathname == "/3/articlePair") {
+      return articlePair(ctx, next);
+    }
   } else if (ctx.req.method === "DELETE") {
     if (ctx.url.pathname == "/3/articleReference") {
       return articleReferenceDelete(ctx, next);
     }
     if (ctx.url.pathname == "/3/referencePair") {
       return referencePairDelete(ctx, next);
+    }
+    if (ctx.url.pathname == "/3/articlePair") {
+      return articlePairDelete(ctx, next);
     }
   }
 

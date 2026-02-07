@@ -9,11 +9,27 @@ export const getArticle: Middleware = (ctx, _) => {
   const id = getId("/2/article/", ctx.url.pathname);
   if (!id) return;
 
-  using stmt = db.prepare("SELECT * FROM article WHERE id = ?");
-  const r = stmt.get(id);
-  if (!r) return;
+  using stmt0 = db.prepare("SELECT * FROM article WHERE id = ?");
+  const a = stmt0.get(id);
+  if (!a) return;
+  const result: Record<string, unknown> = { article: a };
 
-  ctx.res = cborResponse(r);
+  // MAYBE: WHERE published IS NOT NULL
+  using stmt1 = db.prepare(
+    "SELECT r.id, r.name FROM article_reference ar " +
+      "JOIN reference r ON ar.reference_id = r.id WHERE ar.article_id = ?",
+  );
+  result.references = stmt1.all(id);
+
+  using stmt2 = db.prepare(
+    "SELECT a.* FROM article_pair ap " +
+      "JOIN article a ON a.id = ap.a WHERE ap.b = ? " + "UNION ALL " +
+      "SELECT a.* FROM article_pair ap " +
+      "JOIN article a ON a.id = ap.b WHERE ap.a = ?",
+  );
+  result.articles = stmt2.all(id, id);
+
+  ctx.res = cborResponse(result);
 };
 
 export const searchArticle: Middleware = async (ctx, _) => {

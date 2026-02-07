@@ -1,8 +1,8 @@
 import { useEffect, useState } from "preact/hooks";
 import { useLocation, useRoute } from "preact-iso/router";
 
-import { SupportedArraysCBOR, SupportedMapsCBOR } from "../../src/cbor.ts";
 import { cborDecode } from "../../src/cbor-decode.ts";
+import { SupportedArraysCBOR, SupportedMapsCBOR } from "../../src/cbor.ts";
 
 import { aLabeledURL, anArticle, aReference } from "./data.ts";
 
@@ -10,7 +10,7 @@ export const useReference = () => {
   const [reference, setReference] = useState<
     Record<string, typeof aReference.valueType>
   >({});
-  const [labeledURLs, setlabeledURLs] = useState<
+  const [labeledURLs, setLabeledURLs] = useState<
     Record<string, typeof aLabeledURL.valueType>[]
   >([]);
   const [articles, setArticles] = useState<
@@ -35,7 +35,7 @@ export const useReference = () => {
             >,
           );
 
-          setlabeledURLs(
+          setLabeledURLs(
             (r.get("labeledURLs") as SupportedArraysCBOR).map((x) =>
               aLabeledURL.networkToState(x) as Record<
                 string,
@@ -68,10 +68,13 @@ export const useReference = () => {
 
   return {
     articles,
+    setArticles,
     labeledURLs,
-    location,
+    setLabeledURLs,
     reference,
-    references,
     setReference,
+    references,
+    setReferences,
+    location,
   };
 };

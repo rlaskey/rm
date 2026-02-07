@@ -1,8 +1,8 @@
 import { useState } from "preact/hooks";
 
-import { SupportedArraysCBOR } from "../../../src/cbor.ts";
 import { cborDecode } from "../../../src/cbor-decode.ts";
 import { cborRequestInit } from "../../../src/cbor-encode.ts";
+import { SupportedArraysCBOR } from "../../../src/cbor.ts";
 
 import { aLabeledURL } from "../../src/data.ts";
 import { Status, statusState } from "../../src/status.tsx";
@@ -11,11 +11,11 @@ export const LabeledURLs = (
   props: {
     referenceId: string;
     labeledURLs: Record<string, typeof aLabeledURL.valueType>[];
+    setLabeledURLs: (
+      value: Record<string, typeof aLabeledURL.valueType>[],
+    ) => void;
   },
 ) => {
-  const [labeledURLs, setlabeledURLs] = useState<
-    Record<string, typeof aLabeledURL.valueType>[]
-  >(props.labeledURLs);
   const [status, setStatus] = useState(statusState());
 
   const submit = (event: Event) => {
@@ -38,7 +38,7 @@ export const LabeledURLs = (
 
     fetch("/3/url", cborRequestInit(payload)).then(async (res) => {
       if (!res.ok) throw new Error(await res.text() || "Save failed.");
-      setlabeledURLs(
+      props.setLabeledURLs(
         (cborDecode(await res.bytes()) as SupportedArraysCBOR).map((x) =>
           aLabeledURL.networkToState(x) as Record<
             string,
@@ -57,7 +57,7 @@ export const LabeledURLs = (
       <h2>URLs</h2>
       <Status {...status} />
 
-      {labeledURLs.map((u) => (
+      {props.labeledURLs.map((u) => (
         <form onSubmit={submit}>
           <input type="hidden" name="originalId" value={u.id as string} />
 
