@@ -2,7 +2,7 @@ import { compose, Middleware } from "../../src/framework.ts";
 
 import { getArticle, searchArticle } from "./article.ts";
 import { claim } from "./claim.ts";
-import { articleDrafts, articlePublished, references } from "./index.ts";
+import { index } from "./index.ts";
 import { meGET, mePOST } from "./me.ts";
 import { r } from "./r.tsx";
 import { getReference, searchReference } from "./reference.ts";
@@ -34,14 +34,8 @@ const router: Middleware = async (ctx, next) => {
       return;
     }
 
-    if (ctx.url.pathname === "/2/articles/drafts") {
-      return await articleDrafts(ctx, next);
-    }
-    if (ctx.url.pathname === "/2/articles/published") {
-      return await articlePublished(ctx, next);
-    }
-    if (ctx.url.pathname === "/2/references") {
-      return await references(ctx, next);
+    if (ctx.url.pathname === "/2") {
+      return await index(ctx, next);
     }
 
     if (ctx.url.pathname.startsWith("/2/article/")) {

@@ -1,7 +1,8 @@
 import { deleteCookie, setCookie } from "@std/http";
 
+import { type Middleware } from "../../src/framework.ts";
+
 import { cborEncode } from "../../src/cbor-encode.ts";
-import { Middleware } from "../../src/framework.ts";
 import { COOKIE_NAME, timestampSeconds } from "../../src/session.ts";
 import { db } from "../../src/sqlite.ts";
 import { getState } from "../../src/state.ts";

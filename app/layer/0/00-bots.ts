@@ -1,4 +1,4 @@
-import { Middleware } from "../../src/framework.ts";
+import { type Middleware } from "../../src/framework.ts";
 
 const BOTS = [
   "OAI-SearchBot",

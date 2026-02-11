@@ -1,6 +1,7 @@
 import { renderToString } from "preact-render-to-string";
 
-import { Middleware } from "../../src/framework.ts";
+import { type Middleware } from "../../src/framework.ts";
+
 import { SITE_NAME } from "../../src/env.ts";
 
 import { App } from "../app.tsx";

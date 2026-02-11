@@ -1,4 +1,4 @@
-import { SupportedCBOR, SupportedMapsCBOR } from "../../src/cbor.ts";
+import { type SupportedCBOR, type SupportedMapsCBOR } from "../../src/cbor.ts";
 
 type Option = "autoincrement" | "null";
 
@@ -10,6 +10,7 @@ class Column {
   ) {}
 
   public browserToNetwork = (input: string | number | null) => {
+    if (typeof input === "string") input = input.trim();
     if (!input) return null;
 
     if (this.t === "timestamp") {
@@ -26,17 +27,6 @@ class Column {
 const secondsToDate = (input: number | bigint) => {
   if (!input) return null;
   return new Date(Number(input) * 1000);
-};
-
-const zeroPad = (input: number) => String(input).padStart(2, "0");
-
-export const dateToLocal = (date: Date) => {
-  if (!date) return "";
-
-  return date.getFullYear() + "-" +
-    zeroPad(date.getMonth() + 1) + "-" +
-    zeroPad(date.getDate()) + "T" + zeroPad(date.getHours()) + ":" +
-    zeroPad(date.getMinutes());
 };
 
 abstract class Model {

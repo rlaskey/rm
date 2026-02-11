@@ -1,5 +1,5 @@
 import { ArticleA } from "../src/article.tsx";
-import { dateToLocal } from "../src/data.ts";
+import { dateToLocal } from "../src/dates.ts";
 import { useArticle } from "../src/use-article.ts";
 
 export const ReadArticle = () => {

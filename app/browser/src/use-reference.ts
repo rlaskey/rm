@@ -1,8 +1,12 @@
 import { useEffect, useState } from "preact/hooks";
 import { useLocation, useRoute } from "preact-iso/router";
 
+import {
+  type SupportedArraysCBOR,
+  type SupportedMapsCBOR,
+} from "../../src/cbor.ts";
+
 import { cborDecode } from "../../src/cbor-decode.ts";
-import { SupportedArraysCBOR, SupportedMapsCBOR } from "../../src/cbor.ts";
 
 import { aLabeledURL, anArticle, aReference } from "./data.ts";
 

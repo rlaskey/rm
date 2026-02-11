@@ -1,4 +1,4 @@
-import { Middleware } from "../../src/framework.ts";
+import { type Middleware } from "../../src/framework.ts";
 
 const ALLOWED_METHODS = ["GET", "HEAD", "OPTIONS"];
 const ALLOWED_SEC_FETCH_SITE = ["same-origin", "none"];

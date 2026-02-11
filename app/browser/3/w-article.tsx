@@ -3,7 +3,8 @@ import { useState } from "preact/hooks";
 import { cborDecode } from "../../src/cbor-decode.ts";
 import { cborRequestInit } from "../../src/cbor-encode.ts";
 
-import { anArticle, dateToLocal } from "../src/data.ts";
+import { anArticle } from "../src/data.ts";
+import { dateToLocal } from "../src/dates.ts";
 import { Status, statusState } from "../src/status.tsx";
 import { useArticle } from "../src/use-article.ts";
 

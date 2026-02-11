@@ -1,7 +1,8 @@
+import { type SupportedMapsCBOR } from "../../src/cbor.ts";
+import { type Middleware } from "../../src/framework.ts";
+
 import { cborDecode } from "../../src/cbor-decode.ts";
 import { cborResponse } from "../../src/cbor-encode.ts";
-import { SupportedMapsCBOR } from "../../src/cbor.ts";
-import { Middleware } from "../../src/framework.ts";
 import { db } from "../../src/sqlite.ts";
 import { getId } from "../../src/url.ts";
 

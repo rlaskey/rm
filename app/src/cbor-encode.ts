@@ -1,8 +1,8 @@
 import {
   joinUint8Arrays,
-  SupportedArraysCBOR,
-  SupportedCBOR,
-  SupportedMapsCBOR,
+  type SupportedArraysCBOR,
+  type SupportedCBOR,
+  type SupportedMapsCBOR,
 } from "./cbor.ts";
 
 const head = (majorType: number, value: number | bigint): Uint8Array => {

@@ -1,9 +1,9 @@
 import {
-  AdditionalInformation31,
-  SupportedArraysCBOR,
-  SupportedCBOR,
-  SupportedMajorType7,
-  SupportedMapsCBOR,
+  type AdditionalInformation31,
+  type SupportedArraysCBOR,
+  type SupportedCBOR,
+  type SupportedMajorType7,
+  type SupportedMapsCBOR,
 } from "./cbor.ts";
 
 const additionalInformation = (

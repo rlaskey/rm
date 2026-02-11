@@ -1,4 +1,4 @@
-import { dateToLocal } from "./data.ts";
+import { dateToLocal } from "./dates.ts";
 
 type statusClass = "info" | "warning" | "error";
 export const statusState = (m: string = "", c: statusClass = "info") => {

@@ -1,4 +1,5 @@
-import { Middleware } from "../../src/framework.ts";
+import { type Middleware } from "../../src/framework.ts";
+
 import { db } from "../../src/sqlite.ts";
 
 export const claim: Middleware = (ctx, _) => {

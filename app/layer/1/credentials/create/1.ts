@@ -1,5 +1,7 @@
+import { type Middleware } from "../../../../src/framework.ts";
+import { type User } from "../../../../src/user.ts";
+
 import { cborResponse } from "../../../../src/cbor-encode.ts";
-import { Middleware } from "../../../../src/framework.ts";
 import {
   decodeAuthenticatorData,
   decodeClientDataJSON,
@@ -7,7 +9,6 @@ import {
   publicKeyCredentialCreationOptions,
 } from "../../../../src/passkeys.ts";
 import { db } from "../../../../src/sqlite.ts";
-import { User } from "../../../../src/user.ts";
 
 export const create1: Middleware = async (ctx, _) => {
   if (!ctx.state.session) {

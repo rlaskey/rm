@@ -1,8 +1,9 @@
 import { useState } from "preact/hooks";
 
+import { type SupportedArraysCBOR } from "../../../src/cbor.ts";
+
 import { cborDecode } from "../../../src/cbor-decode.ts";
 import { cborRequestInit } from "../../../src/cbor-encode.ts";
-import { SupportedArraysCBOR } from "../../../src/cbor.ts";
 
 import { aReference } from "../../src/data.ts";
 

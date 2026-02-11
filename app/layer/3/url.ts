@@ -1,6 +1,7 @@
+import { type Middleware } from "../../src/framework.ts";
+
 import { cborDecode } from "../../src/cbor-decode.ts";
 import { cborResponse } from "../../src/cbor-encode.ts";
-import { Middleware } from "../../src/framework.ts";
 import { db } from "../../src/sqlite.ts";
 
 import { aLabeledURL } from "../../browser/src/data.ts";

@@ -1,13 +1,14 @@
 import { ulid } from "@std/ulid";
 
-import { Middleware } from "../../../../src/framework.ts";
+import { type Middleware } from "../../../../src/framework.ts";
+import { type User } from "../../../../src/user.ts";
+
 import {
   createChallenge,
   publicKeyCredentialCreationOptions,
 } from "../../../../src/passkeys.ts";
 import { blankSession } from "../../../../src/session.ts";
 import { db } from "../../../../src/sqlite.ts";
-import { User } from "../../../../src/user.ts";
 
 export const create0: Middleware = async (ctx, _) => {
   if (!ctx.state.session) ctx.state.session = blankSession(ctx.req.headers);
