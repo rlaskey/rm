@@ -11,7 +11,8 @@ export const ArticleA = (
     <a href={props.prefix + props.a.id}>
       #{String(props.a.id).padStart(4, "0")}
     </a>
-    {props.a.published && " -- " + dateToLocal(props.a.published as Date)}
+    {props.a.published &&
+      " -- " + dateToLocal(props.a.published as Date).replace("T", " ")}
     {props.a.title && " -- " + props.a.title}
     {props.a.words && " -- " + props.a.words}
   </>
