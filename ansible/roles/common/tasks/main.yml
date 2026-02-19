@@ -8,13 +8,18 @@
     name:
     - deno
     - dnsutils
+    - ffmpeg
     - fzf
     - imagemagick
     - iproute2
+    - libheif
     - nginx
     - nmap
+    - pipewire-jack
+    - rav1e
     - ripgrep
     - sqlite
+    - svt-av1
     - tmux
     - which
     state: present
