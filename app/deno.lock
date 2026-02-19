@@ -5,6 +5,7 @@
     "jsr:@denosaurs/plug@1": "1.1.0",
     "jsr:@std/assert@^1.0.18": "1.0.18",
     "jsr:@std/cli@^1.0.27": "1.0.27",
+    "jsr:@std/crypto@^1.0.5": "1.0.5",
     "jsr:@std/encoding@1": "1.0.10",
     "jsr:@std/encoding@^1.0.10": "1.0.10",
     "jsr:@std/fmt@1": "1.0.9",
@@ -21,7 +22,7 @@
     "jsr:@std/path@^1.1.4": "1.1.4",
     "jsr:@std/streams@^1.0.17": "1.0.17",
     "jsr:@std/ulid@1": "1.0.0",
-    "npm:@preact/signals@^2.7.1": "2.7.1_preact@10.28.3",
+    "npm:@preact/signals@^2.8.1": "2.8.1_preact@10.28.3",
     "npm:preact-iso@^2.11.1": "2.11.1_preact@10.28.3_preact-render-to-string@6.6.5__preact@10.28.3",
     "npm:preact-render-to-string@^6.6.5": "6.6.5_preact@10.28.3",
     "npm:preact@^10.28.3": "10.28.3"
@@ -51,6 +52,9 @@
     },
     "@std/cli@1.0.27": {
       "integrity": "eba97edd0891871a7410e835dd94b3c260c709cca5983df2689c25a71fbe04de"
+    },
+    "@std/crypto@1.0.5": {
+      "integrity": "0dcfbb319fe0bba1bd3af904ceb4f948cde1b92979ec1614528380ed308a3b40"
     },
     "@std/encoding@1.0.10": {
       "integrity": "8783c6384a2d13abd5e9e87a7ae0520a30e9f56aeeaa3bdf910a3eaaf5c811a1"
@@ -111,8 +115,8 @@
     "@preact/signals-core@1.13.0": {
       "integrity": "sha512-slT6XeTCAbdql61GVLlGU4x7XHI7kCZV5Um5uhE4zLX4ApgiiXc0UYFvVOKq06xcovzp7p+61l68oPi563ARKg=="
     },
-    "@preact/signals@2.7.1_preact@10.28.3": {
-      "integrity": "sha512-mP2+wMYHqDXVKFGzjqkL6CiHj3okB8eVTTJUZBrSVGozi/XfA+zZRCEALKKZYRoSoqLyT4J6qM4lhwT9155s1Q==",
+    "@preact/signals@2.8.1_preact@10.28.3": {
+      "integrity": "sha512-wX6U0SpcCukZTJBs5ChljvBZb3XmYzA5gd4vKHgX8wZZKaQCo2WHtmThdLx+mcVvlBa5u3XShC7ffbETJD4BiQ==",
       "dependencies": [
         "@preact/signals-core",
         "preact"
@@ -139,10 +143,11 @@
     "dependencies": [
       "jsr:@db/sqlite@0.13",
       "jsr:@std/assert@^1.0.18",
+      "jsr:@std/crypto@^1.0.5",
       "jsr:@std/fs@^1.0.22",
       "jsr:@std/http@^1.0.24",
       "jsr:@std/ulid@1",
-      "npm:@preact/signals@^2.7.1",
+      "npm:@preact/signals@^2.8.1",
       "npm:preact-iso@^2.11.1",
       "npm:preact-render-to-string@^6.6.5",
       "npm:preact@^10.28.3"

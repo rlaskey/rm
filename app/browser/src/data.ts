@@ -1,6 +1,6 @@
 import { type SupportedCBOR, type SupportedMapsCBOR } from "../../src/cbor.ts";
 
-type Option = "autoincrement" | "null";
+type Option = "autoincrement" | "null" | "readonly";
 
 class Column {
   constructor(
@@ -80,6 +80,7 @@ abstract class Model {
 
     this.schema.forEach((c) => {
       if (c.options.has("autoincrement")) return;
+      if (c.options.has("readonly")) return;
       const v = input.get(c.name) as typeof aReference.valueType;
       if (v === undefined) return;
 
@@ -90,40 +91,24 @@ abstract class Model {
   };
 }
 
-class LabeledURL extends Model {
-  public override get schema() {
-    return [
-      new Column("id", "string"),
-      new Column("reference_id", "bigint"),
-      new Column("label", "string", new Set(["null"])),
-    ];
-  }
-
-  declare public readonly valueType:
-    | bigint
-    | string
-    | undefined;
-}
-
-export const aLabeledURL = new LabeledURL();
-
-class Reference extends Model {
+class File extends Model {
   public override get schema() {
     return [
       new Column("id", "bigint", new Set(["autoincrement"])),
-      new Column("name", "string"),
+      new Column("md5", "string", new Set(["readonly"])),
+      new Column("content_type", "string", new Set(["null", "readonly"])),
+      new Column("title", "string", new Set(["null"])),
     ];
   }
 
   declare public readonly valueType:
-    | bigint
-    | number
     | string
+    | bigint
     | null
     | undefined;
 }
 
-export const aReference = new Reference();
+export const aFile = new File();
 
 class Article extends Model {
   public override get schema() {
@@ -144,3 +129,38 @@ class Article extends Model {
 }
 
 export const anArticle = new Article();
+
+class Reference extends Model {
+  public override get schema() {
+    return [
+      new Column("id", "bigint", new Set(["autoincrement"])),
+      new Column("name", "string"),
+    ];
+  }
+
+  declare public readonly valueType:
+    | bigint
+    | number
+    | string
+    | null
+    | undefined;
+}
+
+export const aReference = new Reference();
+
+class LabeledURL extends Model {
+  public override get schema() {
+    return [
+      new Column("id", "string"),
+      new Column("reference_id", "bigint"),
+      new Column("label", "string", new Set(["null"])),
+    ];
+  }
+
+  declare public readonly valueType:
+    | bigint
+    | string
+    | undefined;
+}
+
+export const aLabeledURL = new LabeledURL();

@@ -7,6 +7,7 @@ import {
 } from "preact-iso/router";
 
 import { ReadArticle } from "./2/r-article.tsx";
+import { ReadFile } from "./2/r-file.tsx";
 import { ReadIndex } from "./2/r-index.tsx";
 import { ReadReference } from "./2/r-reference.tsx";
 
@@ -41,6 +42,7 @@ const Layer2 = () => (
     <main>
       <Router>
         <Route path="/r" component={ReadIndex} />
+        <Route path="/r/f/:id?" component={ReadFile} />
         <Route path="/r/a/:id?" component={ReadArticle} />
         <Route path="/r/r/:id?" component={ReadReference} />
       </Router>

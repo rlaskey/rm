@@ -9,7 +9,8 @@
     - deno
     - dnsutils
     - fzf
-    - libvips
+    - imagemagick
+    - iproute2
     - nginx
     - nmap
     - ripgrep

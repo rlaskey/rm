@@ -75,7 +75,7 @@ export const WriteReference = () => {
       fetch("/3/reference", cborRequestInit(payload))
         .then(async (res) => {
           const d = cborDecode(await res.bytes()) as number | bigint;
-          location.route("/w/reference/" + d);
+          location.route("/w/r/" + d);
         }).catch((e) =>
           setStatus(statusState(String(e.message || e), "error"))
         );

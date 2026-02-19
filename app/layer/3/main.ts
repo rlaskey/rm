@@ -1,6 +1,7 @@
 import { compose, Middleware } from "../../src/framework.ts";
 
 import { insertArticle, updateArticle } from "./article.ts";
+import { postFile, updateFile } from "./file.ts";
 import {
   articlePair,
   articlePairDelete,
@@ -21,13 +22,6 @@ const router: Middleware = async (ctx, next) => {
   if (ctx.req.method === "GET") {
     if (ctx.url.pathname.startsWith("/w")) return await w(ctx, next);
   } else if (ctx.req.method === "POST") {
-    if (ctx.url.pathname.startsWith("/3/article/")) {
-      return await updateArticle(ctx, next);
-    }
-    if (ctx.url.pathname.startsWith("/3/reference/")) {
-      return await updateReference(ctx, next);
-    }
-
     if (ctx.url.pathname === "/3/article") {
       return await insertArticle(ctx, next);
     }
@@ -36,6 +30,9 @@ const router: Middleware = async (ctx, next) => {
     }
     if (ctx.url.pathname === "/3/url") {
       return await postURL(ctx, next);
+    }
+    if (ctx.url.pathname === "/3/file") {
+      return await postFile(ctx, next);
     }
 
     if (ctx.url.pathname == "/3/articleReference") {
@@ -46,6 +43,16 @@ const router: Middleware = async (ctx, next) => {
     }
     if (ctx.url.pathname == "/3/articlePair") {
       return articlePair(ctx, next);
+    }
+
+    if (ctx.url.pathname.startsWith("/3/file/")) {
+      return await updateFile(ctx, next);
+    }
+    if (ctx.url.pathname.startsWith("/3/article/")) {
+      return await updateArticle(ctx, next);
+    }
+    if (ctx.url.pathname.startsWith("/3/reference/")) {
+      return await updateReference(ctx, next);
     }
   } else if (ctx.req.method === "DELETE") {
     if (ctx.url.pathname == "/3/articleReference") {

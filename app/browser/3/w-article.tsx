@@ -75,7 +75,7 @@ export const WriteArticle = () => {
       fetch("/3/article", cborRequestInit(payload))
         .then(async (res) => {
           const d = cborDecode(await res.bytes()) as number | bigint;
-          location.route("/w/article/" + d);
+          location.route("/w/a/" + d);
         }).catch((e) =>
           setStatus(statusState(String(e.message || e), "error"))
         );

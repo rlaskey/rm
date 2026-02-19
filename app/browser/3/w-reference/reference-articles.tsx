@@ -77,7 +77,7 @@ export const ReferenceArticles = (
             >
               Unlink
             </button>
-            <ArticleA prefix="/w/article/" a={a} />
+            <ArticleA prefix="/w/a/" a={a} />
           </p>
         ))}
       </ul>
@@ -91,7 +91,7 @@ export const ReferenceArticles = (
         {found.map((a) => (
           <p key={a.id}>
             <button type="button" onClick={link(a)}>Link</button>
-            <ArticleA prefix="/w/article/" a={a} />
+            <ArticleA prefix="/w/a/" a={a} />
           </p>
         ))}
         <p>

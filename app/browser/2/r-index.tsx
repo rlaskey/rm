@@ -1,10 +1,12 @@
 import { DraftArticles, PublishedArticles } from "../src/article.tsx";
+import { Files } from "../src/files.tsx";
+import { References } from "../src/references.tsx";
 import { useIndex } from "../src/use-index.ts";
-
-import { References } from "./r-references.tsx";
 
 export const ReadIndex = () => {
   const {
+    files,
+    backFile,
     drafts,
     backDraft,
     published,
@@ -16,6 +18,10 @@ export const ReadIndex = () => {
 
   return (
     <>
+      <Files prefix="/r/f/" {...{ files, backFile, location }} />
+
+      <hr />
+
       <DraftArticles
         prefix="/r/a/"
         {...{ drafts, backDraft, location }}

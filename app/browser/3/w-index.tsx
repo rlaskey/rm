@@ -1,10 +1,14 @@
 import { DraftArticles, PublishedArticles } from "../src/article.tsx";
+import { Files } from "../src/files.tsx";
+import { References } from "../src/references.tsx";
 import { useIndex } from "../src/use-index.ts";
 
-import { References } from "../2/r-references.tsx";
+import { Upload } from "./w-index/upload.tsx";
 
 export const WriteIndex = () => {
   const {
+    files,
+    backFile,
     drafts,
     backDraft,
     published,
@@ -16,27 +20,26 @@ export const WriteIndex = () => {
 
   return (
     <>
-      <DraftArticles
-        prefix="/w/article/"
-        {...{ drafts, backDraft: backDraft, location }}
-      />
+      <Files prefix="/w/f/" {...{ files, backFile, location }} />
+      <Upload />
+
+      <hr />
+
+      <DraftArticles prefix="/w/a/" {...{ drafts, backDraft, location }} />
       <PublishedArticles
-        prefix="/w/article/"
+        prefix="/w/a/"
         {...{ published, backPublished, location }}
       />
 
       <p>
-        <a href="/w/article">Create an Article</a>.
+        <a href="/w/a">Create an Article</a>.
       </p>
 
       <hr />
 
-      <References
-        prefix="/w/reference/"
-        {...{ references, backReference, location }}
-      />
+      <References prefix="/w/r/" {...{ references, backReference, location }} />
       <p>
-        <a href="/w/reference">Create a Reference</a>.
+        <a href="/w/r">Create a Reference</a>.
       </p>
     </>
   );

@@ -28,11 +28,9 @@ const save = (
       );
       if (stmt1.run(Object.values(record)) !== 1) return "INSERT failed.";
     } catch (e) {
-      if (e instanceof SuppressedError) {
-        let s = e.suppressed;
-        while (s && s.suppressed) s = s.suppressed;
-        return s;
-      }
+      let error = e;
+      while (error instanceof SuppressedError) error = error.suppressed;
+
       if (e instanceof Error) return String(e.message);
       return "Unknown error w/ INSERT.";
     }

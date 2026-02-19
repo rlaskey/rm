@@ -1,7 +1,7 @@
 import { type LocationHook } from "preact-iso/router";
 
-import { aReference } from "../src/data.ts";
-import { SELECT_LIMIT } from "../src/site.ts";
+import { aReference } from "./data.ts";
+import { SELECT_LIMIT } from "./site.ts";
 
 export const References = (
   props: {

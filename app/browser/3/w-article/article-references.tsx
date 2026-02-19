@@ -78,7 +78,7 @@ export const ArticleReferences = (
             >
               Unlink
             </button>
-            <a href={"/w/reference/" + r.id}>
+            <a href={"/w/r/" + r.id}>
               #{String(r.id).padStart(4, "0")}
             </a>{" "}
             {r.name}
@@ -97,7 +97,7 @@ export const ArticleReferences = (
             <button type="button" onClick={link(r)}>
               Link
             </button>
-            <a href={"/w/reference/" + r.id}>
+            <a href={"/w/r/" + r.id}>
               #{String(r.id).padStart(4, "0")}
             </a>{" "}
             {r.name}

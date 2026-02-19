@@ -2,6 +2,7 @@ import { compose, Middleware } from "../../src/framework.ts";
 
 import { getArticle, searchArticle } from "./article.ts";
 import { claim } from "./claim.ts";
+import { getBytes, getFile } from "./file.ts";
 import { index } from "./index.ts";
 import { meGET, mePOST } from "./me.ts";
 import { r } from "./r.tsx";
@@ -36,6 +37,14 @@ const router: Middleware = async (ctx, next) => {
 
     if (ctx.url.pathname === "/2") {
       return await index(ctx, next);
+    }
+
+    if (ctx.url.pathname.startsWith("/2/file/")) {
+      return await getFile(ctx, next);
+    }
+
+    if (ctx.url.pathname.startsWith("/2/bytes/")) {
+      return await getBytes(ctx, next);
     }
 
     if (ctx.url.pathname.startsWith("/2/article/")) {

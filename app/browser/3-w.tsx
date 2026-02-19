@@ -7,6 +7,7 @@ import {
 } from "preact-iso/router";
 
 import { WriteArticle } from "./3/w-article.tsx";
+import { WriteFile } from "./3/w-file.tsx";
 import { WriteIndex } from "./3/w-index.tsx";
 import { WriteReference } from "./3/w-reference.tsx";
 
@@ -44,8 +45,9 @@ const Layer3 = () => (
     <main>
       <Router>
         <Route path="/w" component={WriteIndex} />
-        <Route path="/w/article/:id?" component={WriteArticle} />
-        <Route path="/w/reference/:id?" component={WriteReference} />
+        <Route path="/w/f/:id?" component={WriteFile} />
+        <Route path="/w/a/:id?" component={WriteArticle} />
+        <Route path="/w/r/:id?" component={WriteReference} />
       </Router>
     </main>
   </LocationProvider>

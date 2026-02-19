@@ -77,7 +77,7 @@ export const PairArticles = (
             >
               Unlink
             </button>
-            <ArticleA prefix="/w/article/" a={a} />
+            <ArticleA prefix="/w/a/" a={a} />
           </p>
         ))}
       </ul>
@@ -93,7 +93,7 @@ export const PairArticles = (
             <button type="button" onClick={pair(a)}>
               Link
             </button>
-            <ArticleA prefix="/w/article/" a={a} />
+            <ArticleA prefix="/w/a/" a={a} />
           </p>
         ))}
         <p>

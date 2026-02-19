@@ -30,21 +30,22 @@ const hash = async (data: string | Uint8Array): Promise<string> =>
     ),
   ).toHex();
 
+interface S3CommandInput {
+  Key: string;
+  Body?: string | Uint8Array;
+}
+
 export class GetObjectCommand {
   public readonly method: string = "GET";
-  constructor(
-    public input: { Bucket: string; Key: string; Body?: undefined },
-  ) {}
+  constructor(public input: S3CommandInput) {}
 }
 
-export class PubObjectCommand {
+export class PutObjectCommand {
   public readonly method: string = "PUT";
-  constructor(
-    public input: { Bucket: string; Key: string; Body: string | Uint8Array },
-  ) {}
+  constructor(public input: S3CommandInput) {}
 }
 
-type S3Command = GetObjectCommand | PubObjectCommand;
+type S3Command = GetObjectCommand | PutObjectCommand;
 
 class S3Client {
   constructor(
@@ -53,6 +54,7 @@ class S3Client {
       endpoint: string;
       credentials: { accessKeyId: string; secretAccessKey: string };
     },
+    private bucket: string,
   ) {}
 
   async send(command: S3Command): Promise<Response> {
@@ -61,7 +63,7 @@ class S3Client {
       : command.input.Body;
 
     const url = new URL(
-      this.config.endpoint + "/" + command.input.Bucket + "/" +
+      this.config.endpoint + "/" + this.bucket + "/" +
         command.input.Key,
     );
     const datetime = new Date().toISOString().replace(/[:\-]|\.\d{3}/g, "");
@@ -139,6 +141,25 @@ export const s3 = new S3Client({
     accessKeyId: Deno.env.get("AWS_ACCESS_KEY_ID") ?? "nah",
     secretAccessKey: Deno.env.get("AWS_SECRET_ACCESS_KEY") ?? "nah",
   },
-});
+}, Deno.env.get("S3_BUCKET") ?? "rm");
 
-export const Bucket = Deno.env.get("S3_BUCKET") ?? "rm";
+const _fromKey = (key: string): bigint => {
+  let place = 0n;
+  let result = 0n;
+  key.split("/").forEach((digit) =>
+    result += (256n ** place++) * BigInt(digit)
+  );
+
+  return result;
+};
+
+export const toKey = (id: bigint): string => {
+  let r = id;
+  const folders: string[] = [];
+  while (r > 0n) {
+    folders.push(String(r % 256n));
+    r = r >> 8n;
+  }
+
+  return folders.join("/");
+};

@@ -7,6 +7,32 @@ import { db } from "../../src/sqlite.ts";
 
 type Result = Record<string, unknown>;
 
+const files = (result: Result, searchParams: URLSearchParams): void => {
+  const filesSkip = BigInt(searchParams.get("f") || 0);
+
+  if (filesSkip > 0n) {
+    using stmt0 = db.prepare(
+      "SELECT * FROM file WHERE id <= ? " +
+        "ORDER BY id DESC LIMIT " + (SELECT_LIMIT + 1),
+    );
+    result.files = stmt0.all(filesSkip);
+
+    using stmt1 = db.prepare(
+      "SELECT r.* FROM (" +
+        "SELECT id FROM file WHERE id > ? " +
+        "ORDER BY id ASC LIMIT " + SELECT_LIMIT +
+        ") AS r ORDER BY id DESC LIMIT 1",
+    );
+    result.backFile = ((stmt1.value(filesSkip) as bigint[]) || [])[0];
+  } else {
+    using stmt0 = db.prepare(
+      "SELECT * FROM file " +
+        "ORDER BY id DESC LIMIT " + (SELECT_LIMIT + 1),
+    );
+    result.files = stmt0.all();
+  }
+};
+
 const drafts = (result: Result, searchParams: URLSearchParams): void => {
   const draftsSkip = BigInt(searchParams.get("d") || 0);
   using stmt0 = db.prepare(
@@ -96,6 +122,7 @@ export const index: Middleware = (ctx, _) => {
   const result: Result = {};
   const searchParams = ctx.url.searchParams;
 
+  files(result, searchParams);
   drafts(result, searchParams);
   published(result, searchParams);
   references(result, searchParams);
