@@ -4,16 +4,17 @@ import { UPLOAD_BYTES_LIMIT } from "../../src/site.ts";
 import { Status, statusState } from "../../src/status.tsx";
 
 export const Upload = () => {
+  const [uploading, setUploading] = useState(false);
   const [status, setStatus] = useState(statusState());
 
   const upload = async () => {
+    setUploading(true);
     const input = document.getElementById("upload") as HTMLInputElement;
-
     const files = input.files as FileList;
-    input.value = "";
 
     const success: string[] = [];
     const errors: string[] = [];
+
     let response: Response | undefined;
     for (const file of files) {
       if (file.size > UPLOAD_BYTES_LIMIT) {
@@ -21,10 +22,14 @@ export const Upload = () => {
         continue;
       }
 
-      response = await fetch("/3/file", { method: "POST", body: file });
-      if (!response.ok) {
-        errors.push(file.name + ": " + await response.text());
-      } else success.push(file.name);
+      try {
+        response = await fetch("/3/file", { method: "POST", body: file });
+        if (!response.ok) {
+          errors.push(file.name + ": " + await response.text());
+        } else success.push(file.name);
+      } catch (e) {
+        errors.push(e instanceof Error ? e.message : String(e));
+      }
     }
 
     const message: string[] = [];
@@ -37,16 +42,21 @@ export const Upload = () => {
       message.join(". "),
       errors.length ? "error" : "info",
     ));
+
+    setUploading(false);
+    input.value = "";
   };
 
   return (
     <>
       <Status {...status} />
 
-      <p>
-        <input id="upload" type="file" multiple />
-        <button type="button" onClick={upload}>Upload</button>
-      </p>
+      {uploading ? <p class="warning">🥳 uploading. Please hold.</p> : (
+        <p>
+          <input id="upload" type="file" multiple />
+          <button type="button" onClick={upload}>Upload</button>
+        </p>
+      )}
     </>
   );
 };
