@@ -21,6 +21,7 @@ export const DisplayFile = (props: Record<string, typeof aFile.valueType>) => {
     <>
       <h1>
         File{props.id && ": " + String(props.id).padStart(4, "0")}
+        {props.title && " -- " + props.title}
       </h1>
 
       <p>
@@ -32,6 +33,8 @@ export const DisplayFile = (props: Record<string, typeof aFile.valueType>) => {
               onClick={imageCycle}
             />
           )
+          : (props.content_type as string)?.startsWith("audio/")
+          ? <audio controls src={"/2/bytes/" + props.id}></audio>
           : <a href={"/2/bytes/" + props.id}>Download</a>}
       </p>
     </>

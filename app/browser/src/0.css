@@ -102,6 +102,10 @@ img {
   background-color: #202020;
 }
 
+audio {
+  width: 100%;
+}
+
 button {
   color: white;
   margin-inline-end: 0.5rem;
