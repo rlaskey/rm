@@ -3,7 +3,7 @@ import { useState } from "preact/hooks";
 import { UPLOAD_BYTES_LIMIT } from "../../src/site.ts";
 import { Status, statusState } from "../../src/status.tsx";
 
-export const Upload = () => {
+export const UploadFile = (props: { id: number | bigint }) => {
   const [uploading, setUploading] = useState(false);
   const [status, setStatus] = useState(statusState());
 
@@ -23,7 +23,10 @@ export const Upload = () => {
       }
 
       try {
-        response = await fetch("/3/file", { method: "POST", body: file });
+        response = await fetch("/3/file/bytes/" + String(props.id), {
+          method: "PUT",
+          body: file,
+        });
         if (!response.ok) {
           errors.push(file.name + ": " + await response.text());
         } else success.push(file.name);
@@ -53,7 +56,7 @@ export const Upload = () => {
 
       {uploading ? <p class="warning">🥳 uploading. Please hold.</p> : (
         <p>
-          <input id="upload" type="file" multiple />
+          <input id="upload" type="file" />
           <button type="button" onClick={upload}>Upload</button>
         </p>
       )}

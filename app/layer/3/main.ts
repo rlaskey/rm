@@ -1,7 +1,7 @@
 import { compose, Middleware } from "../../src/framework.ts";
 
 import { insertArticle, updateArticle } from "./article.ts";
-import { postFile, updateFile } from "./file.ts";
+import { insertFile, updateFileBytes, updateFileMeta } from "./file.ts";
 import {
   articlePair,
   articlePairDelete,
@@ -32,7 +32,7 @@ const router: Middleware = async (ctx, next) => {
       return await postURL(ctx, next);
     }
     if (ctx.url.pathname === "/3/file") {
-      return await postFile(ctx, next);
+      return await insertFile(ctx, next);
     }
 
     if (ctx.url.pathname == "/3/articleReference") {
@@ -45,14 +45,18 @@ const router: Middleware = async (ctx, next) => {
       return articlePair(ctx, next);
     }
 
-    if (ctx.url.pathname.startsWith("/3/file/")) {
-      return await updateFile(ctx, next);
+    if (ctx.url.pathname.startsWith("/3/file/meta/")) {
+      return await updateFileMeta(ctx, next);
     }
     if (ctx.url.pathname.startsWith("/3/article/")) {
       return await updateArticle(ctx, next);
     }
     if (ctx.url.pathname.startsWith("/3/reference/")) {
       return await updateReference(ctx, next);
+    }
+  } else if (ctx.req.method === "PUT") {
+    if (ctx.url.pathname.startsWith("/3/file/bytes/")) {
+      return await updateFileBytes(ctx, next);
     }
   } else if (ctx.req.method === "DELETE") {
     if (ctx.url.pathname == "/3/articleReference") {

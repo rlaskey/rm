@@ -10,7 +10,7 @@ import { aFile } from "../../browser/src/data.ts";
 
 // also: ["-colorspace", "RGB"]
 const magickToAVIF = new Deno.Command("magick", {
-  args: ["-", "-resize", ">2048x>2048", "-strip", "avif:-"],
+  args: ["-", "-resize", ">2048x>2048", "+profile", "!icc,*", "avif:-"],
   stdin: "piped",
   stdout: "piped",
 });
@@ -46,7 +46,7 @@ const process = async (
   return [bytes, contentType];
 };
 
-export const postFile: Middleware = async (ctx, _) => {
+export const insertFile: Middleware = async (ctx, _) => {
   const reqBytes = await ctx.req.bytes();
   const reqContentType = ctx.req.headers.get("content-type");
 
@@ -86,8 +86,51 @@ export const postFile: Middleware = async (ctx, _) => {
   ctx.res = cborResponse(db.lastInsertRowId);
 };
 
-export const updateFile: Middleware = async (ctx, _) => {
-  const id = getId("/3/file/", ctx.url.pathname);
+export const updateFileBytes: Middleware = async (ctx, _) => {
+  const id = getId("/3/file/bytes/", ctx.url.pathname);
+  if (!id) return;
+
+  const reqBytes = await ctx.req.bytes();
+  const reqContentType = ctx.req.headers.get("content-type");
+
+  try {
+    using stmt0 = db.prepare(
+      "UPDATE file SET md5 = ?, content_type = ? WHERE id = ?",
+    );
+
+    const upload = db.transaction(
+      async (b: Uint8Array, cT: string | null, PK: bigint) => {
+        const md5 = new Uint8Array(
+          await crypto.subtle.digest("MD5", b as BufferSource),
+        );
+        stmt0.run(md5, cT, PK);
+        await s3.send(
+          new PutObjectCommand({ Key: toKey(BigInt(PK)), Body: b }),
+        );
+      },
+    );
+
+    const [bytes, contentType] = await process(reqBytes, reqContentType);
+    await upload(bytes, contentType, id);
+  } catch (e) {
+    let error = e;
+    while (error instanceof SuppressedError) error = error.suppressed;
+
+    let message = (error instanceof Error)
+      ? String(error.message)
+      : "Unknown error w/ UPLOAD.";
+    if (message.startsWith("UNIQUE constraint")) {
+      message = "file already uploaded.";
+    }
+    ctx.res = new Response(message, { status: 400 });
+    return;
+  }
+
+  ctx.res = cborResponse(null);
+};
+
+export const updateFileMeta: Middleware = async (ctx, _) => {
+  const id = getId("/3/file/meta/", ctx.url.pathname);
   if (!id) return;
 
   const r = cborDecode(await ctx.req.bytes());

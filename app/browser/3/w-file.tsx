@@ -7,6 +7,7 @@ import { aFile } from "../src/data.ts";
 import { Status, statusState } from "../src/status.tsx";
 import { useFile } from "../src/use-file.ts";
 import { DisplayFile } from "../src/files.tsx";
+import { UploadFile } from "./w-file/upload-file.tsx";
 
 export const WriteFile = () => {
   const { file, setFile } = useFile();
@@ -37,7 +38,7 @@ export const WriteFile = () => {
     }
 
     fetch(
-      "/3/file/" + String(BigInt(file.id as number | bigint)),
+      "/3/file/meta/" + String(BigInt(file.id as number | bigint)),
       cborRequestInit(payload),
     ).then(async (res) => {
       if (!res.ok) throw new Error(await res.text() || "Save failed.");
@@ -71,6 +72,10 @@ export const WriteFile = () => {
           <button type="submit">Save</button>
         </p>
       </form>
+
+      <hr />
+
+      <UploadFile id={file.id as bigint} />
     </>
   );
 };

@@ -3,7 +3,7 @@ import { Files } from "../src/files.tsx";
 import { References } from "../src/references.tsx";
 import { useIndex } from "../src/use-index.ts";
 
-import { Upload } from "./w-index/upload.tsx";
+import { UploadFiles } from "./w-index/upload-files.tsx";
 
 export const WriteIndex = () => {
   const {
@@ -21,7 +21,7 @@ export const WriteIndex = () => {
   return (
     <>
       <Files prefix="/w/f/" {...{ files, backFile, location }} />
-      <Upload />
+      <UploadFiles />
 
       <hr />
 
