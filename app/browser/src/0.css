@@ -102,7 +102,7 @@ img {
   background-color: #202020;
 }
 
-audio {
+audio, video {
   width: 100%;
 }
 

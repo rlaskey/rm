@@ -35,6 +35,8 @@ export const DisplayFile = (props: Record<string, typeof aFile.valueType>) => {
           )
           : (props.content_type as string)?.startsWith("audio/")
           ? <audio controls src={"/2/bytes/" + props.id}></audio>
+          : (props.content_type as string)?.startsWith("video/")
+          ? <video controls src={"/2/bytes/" + props.id}></video>
           : <a href={"/2/bytes/" + props.id}>Download</a>}
       </p>
     </>
