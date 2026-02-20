@@ -3,8 +3,21 @@ import { type LocationHook } from "preact-iso/router";
 import { aFile } from "./data.ts";
 import { SELECT_LIMIT } from "./site.ts";
 
-export const DisplayFile = (props: Record<string, typeof aFile.valueType>) =>
-  props.id && (
+export const DisplayFile = (props: Record<string, typeof aFile.valueType>) => {
+  const imageCycle = (event: Event) => {
+    const e = event.currentTarget as HTMLElement;
+
+    if (e.classList.contains("fill-viewport")) {
+      e.classList.remove("fill-viewport");
+      e.classList.add("full-bleed");
+    } else if (e.classList.contains("full-bleed")) {
+      e.classList.remove("full-bleed");
+    } else {
+      e.classList.add("fill-viewport");
+    }
+  };
+
+  return props.id && (
     <>
       <h1>
         File{props.id && ": " + String(props.id).padStart(4, "0")}
@@ -12,11 +25,18 @@ export const DisplayFile = (props: Record<string, typeof aFile.valueType>) =>
 
       <p>
         {(props.content_type as string)?.startsWith("image/")
-          ? <img src={"/2/bytes/" + props.id} />
+          ? (
+            <img
+              className="pointer"
+              src={"/2/bytes/" + props.id}
+              onClick={imageCycle}
+            />
+          )
           : <a href={"/2/bytes/" + props.id}>Download</a>}
       </p>
     </>
   );
+};
 
 export const Files = (
   props: {

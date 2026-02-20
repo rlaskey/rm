@@ -84,6 +84,24 @@ img {
   margin-inline: auto;
 }
 
+.full-bleed {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  object-fit: cover;
+}
+
+.fill-viewport {
+  position: absolute;
+  top: 0;
+  left: 0;
+  width: 100vw;
+  height: 100vh;
+  object-fit: contain;
+  background-color: #202020;
+}
+
 button {
   color: white;
   margin-inline-end: 0.5rem;
