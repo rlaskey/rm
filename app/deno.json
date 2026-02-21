@@ -1,8 +1,6 @@
 {
   "tasks": {
-    "check": "deno fmt --check . && deno lint . && deno check",
-    "dev": "deno -NERWS --allow-ffi --allow-run=magick --env-file --watch=browser --watch main.ts",
-    "main": "deno -NERWS --allow-ffi --allow-run=magick --env-file main.ts",
+    "main": "deno -NERWS --allow-ffi --allow-run=magick --env-file --watch=browser --watch main.ts",
     "migrate": "deno -ERW --allow-ffi migrations/migrate.ts"
   },
   "imports": {

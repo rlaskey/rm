@@ -82,6 +82,7 @@ a {
 img {
   max-width: 100%;
   margin-inline: auto;
+  border-radius: 0.25rem;
 }
 
 .full-bleed {
@@ -91,6 +92,7 @@ img {
   width: 100vw;
   object-fit: cover;
   background-color: #202020;
+  border-radius: 0;
 }
 
 .fill-viewport {
@@ -101,6 +103,7 @@ img {
   height: 100vh;
   object-fit: contain;
   background-color: #202020;
+  border-radius: 0;
 }
 
 audio, video {
@@ -119,6 +122,10 @@ button {
 
 button.danger {
   background: #e00000;
+}
+
+summary {
+  margin-bottom: 0.5rem;
 }
 
 summary, label, button, .pointer {

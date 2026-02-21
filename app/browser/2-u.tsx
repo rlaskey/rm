@@ -6,6 +6,7 @@ import { cborRequestInit } from "../src/cbor-encode.ts";
 import { cborDecode } from "../src/cbor-decode.ts";
 
 import { Status, statusState } from "./src/status.tsx";
+import { UserName } from "./src/user.tsx";
 
 const me = signal({ name: "", write: false });
 const passkeys = signal<string[]>([]);
@@ -121,19 +122,8 @@ const User = () => {
         <h2>Account: {me.value.name}</h2>
 
         <form onSubmit={updateName}>
-          <details>
-            <summary>Name</summary>
-            You can call yourself whatever you want, and change the name at any
-            point. There is no claiming of a username: everyone can be named
-            Larry, if that's how things shake out.
-          </details>
-          <input
-            name="name"
-            placeholder="Your Name"
-            required
-            title="Whatever you want to call yourself / this account."
-            value={me.value.name}
-          />
+          <UserName />
+          <input name="name" required value={me.value.name} />
 
           <Status {...status} />
           <p>

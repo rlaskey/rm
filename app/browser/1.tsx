@@ -3,6 +3,7 @@ import { useState } from "preact/hooks";
 
 // NOTE: we will use this for other routes. Doing this here allows the bundler to process it.
 import "./src/0.css";
+import { UserName } from "./src/user.tsx";
 
 const Layer1 = () => {
   const [attempted, setAttempted] = useState(false);
@@ -53,7 +54,8 @@ const Layer1 = () => {
       ).then(async (res1) => {
         if (res1.ok) yay();
         else throw new Error(await res1.text());
-      }).catch((e: Error) => setCreateError(String(e.message || e)));
+      }).catch((e: Error) => setCreateError(String(e.message || e)))
+      .finally(() => setAttempted(true));
   };
 
   return (
@@ -71,13 +73,21 @@ const Layer1 = () => {
           </menu>
         </nav>
       </header>
+
+      <h2>?!</h2>
+
+      <p>
+        <a href="https://en.wikipedia.org/wiki/WebAuthn">Passkeys</a>{" "}
+        are good for you. If you've never set one up, now is a great time to
+        start.
+      </p>
+
+      <hr />
+
       <h2>Authenticate</h2>
 
       <p>
-        This site uses{" "}
-        <a href="https://en.wikipedia.org/wiki/WebAuthn">Passkeys</a>. We'll
-        start with a search for existing credentials. If we can't find any, we
-        can then create a new one.
+        For when you've been here before AND if you've successfully Registered.
       </p>
       <p>
         <button type="button" onClick={get}>
@@ -87,40 +97,26 @@ const Layer1 = () => {
 
       {getError && <p className="error">{getError}</p>}
 
-      {attempted && (
-        <>
-          <h2>Register</h2>
-          <p>
-            If you think you have your Passkey stored elsewhere, you can try
-            Authenticate again. Otherwise, you can Register, which will create a
-            NEW Passkey.
-          </p>
-          <p>
-            We're asking for a name, but that can be anything that helps you
-            remember who you are / what you call yourself or your device, in
-            this context.
-          </p>
-          <form onSubmit={create}>
-            <label>
-              Name
-              <input
-                className="flex-1"
-                name="name"
-                placeholder="Your Name"
-                required
-                title="Whatever you want to call yourself / this account."
-              />
-            </label>
-            <p>
-              <button type="submit">
-                Register
-              </button>
-            </p>
-          </form>
+      <hr />
 
-          {createError && <p className="error">{createError}</p>}
-        </>
-      )}
+      <h2>Register</h2>
+      <p>
+        For when you've NOT been here before OR if Authenticating isn't working
+        out. This will create a NEW Passkey.
+      </p>
+      <form onSubmit={create}>
+        <label>
+          <UserName />
+          <input name="name" value="LARRY" required />
+        </label>
+        <p>
+          <button type="submit">
+            Register
+          </button>
+        </p>
+      </form>
+
+      {createError && <p className="error">{createError}</p>}
     </>
   );
 };
