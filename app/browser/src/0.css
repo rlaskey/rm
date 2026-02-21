@@ -90,6 +90,7 @@ img {
   left: 0;
   width: 100vw;
   object-fit: cover;
+  background-color: #202020;
 }
 
 .fill-viewport {
