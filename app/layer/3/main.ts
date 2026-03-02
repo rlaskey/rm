@@ -1,6 +1,7 @@
 import { compose, Middleware } from "../../src/framework.ts";
 
 import { insertArticle, updateArticle } from "./article.ts";
+import { backup } from "./backup.ts";
 import { insertFile, updateFileBytes, updateFileMeta } from "./file.ts";
 import {
   articlePair,
@@ -21,6 +22,10 @@ const block: Middleware = async (ctx, next) => {
 const router: Middleware = async (ctx, next) => {
   if (ctx.req.method === "GET") {
     if (ctx.url.pathname.startsWith("/w")) return await w(ctx, next);
+
+    if (ctx.url.pathname === "/3/backup") {
+      return await backup(ctx, next);
+    }
   } else if (ctx.req.method === "POST") {
     if (ctx.url.pathname === "/3/article") {
       return await insertArticle(ctx, next);

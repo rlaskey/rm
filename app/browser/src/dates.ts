@@ -1,4 +1,4 @@
-const zeroPad = (input: number) => String(input).padStart(2, "0");
+export const zeroPad = (input: number) => String(input).padStart(2, "0");
 
 export const dateToLocal = (date: Date) => {
   if (!date) return "";
