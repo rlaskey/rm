@@ -15,7 +15,8 @@ export const backup: Middleware = async (ctx, _) => {
 
   const now = new Date();
   const Key = "00-db/" + now.getUTCFullYear() + "/" +
-    zeroPad(now.getUTCMonth()) + "-" + zeroPad(now.getUTCDate()) + ".sqlite";
+    zeroPad(now.getUTCMonth() + 1) + "-" + zeroPad(now.getUTCDate()) +
+    ".sqlite";
 
   await s3.send(new PutObjectCommand({ Key, Body: await Deno.readFile(t) }));
   const fileInfo = await Deno.lstat(t);
