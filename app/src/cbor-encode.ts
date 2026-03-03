@@ -1,5 +1,5 @@
+import { joinUint8Arrays } from "./bytes.ts";
 import {
-  joinUint8Arrays,
   type SupportedArraysCBOR,
   type SupportedCBOR,
   type SupportedMapsCBOR,

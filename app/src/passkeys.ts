@@ -1,4 +1,4 @@
-import { joinUint8Arrays } from "./cbor.ts";
+import { joinUint8Arrays } from "./bytes.ts";
 import { cborEncode } from "./cbor-encode.ts";
 import { HOSTNAME, SITE_NAME } from "./env.ts";
 import { db } from "./sqlite.ts";
