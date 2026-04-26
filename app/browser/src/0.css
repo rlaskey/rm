@@ -74,6 +74,7 @@ pre {
 
 a {
   color: #0060e0;
+  font-size: 18px;
   @media (prefers-color-scheme: dark) {
     color: #10a0a0;
   }
