@@ -62,10 +62,10 @@ export const PublishedArticles = (
       </menu>
       <p>
         {!!props.backPublished && (
-          <button type="button" onClick={goBack}>Back</button>
+          <button type="button" onClick={goBack}>Newer</button>
         )}
         {props.published.length > SELECT_LIMIT && (
-          <button type="button" onClick={goForth}>Forth</button>
+          <button type="button" onClick={goForth}>Older</button>
         )}
       </p>
     </>
@@ -110,10 +110,10 @@ export const DraftArticles = (
       </menu>
       <p>
         {props.backDraft > 0n && (
-          <button type="button" onClick={goBack}>Back</button>
+          <button type="button" onClick={goBack}>Older</button>
         )}
         {props.drafts.length > SELECT_LIMIT && (
-          <button type="button" onClick={goForth}>Forth</button>
+          <button type="button" onClick={goForth}>Newer</button>
         )}
       </p>
     </>

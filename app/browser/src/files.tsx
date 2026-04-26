@@ -85,10 +85,10 @@ export const Files = (
       </menu>
       <p>
         {!!props.backFile && (
-          <button type="button" onClick={goBack}>Back</button>
+          <button type="button" onClick={goBack}>Newer</button>
         )}
         {props.files.length > SELECT_LIMIT && (
-          <button type="button" onClick={goForth}>Forth</button>
+          <button type="button" onClick={goForth}>Older</button>
         )}
       </p>
     </>

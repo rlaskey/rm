@@ -44,10 +44,10 @@ export const References = (
       </menu>
       <p>
         {!!props.backReference && (
-          <button type="button" onClick={goBack}>Back</button>
+          <button type="button" onClick={goBack}>Newer</button>
         )}
         {props.references.length > SELECT_LIMIT && (
-          <button type="button" onClick={goForth}>Forth</button>
+          <button type="button" onClick={goForth}>Older</button>
         )}
       </p>
     </>
