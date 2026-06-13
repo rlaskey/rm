@@ -42,7 +42,7 @@ export const create1: Middleware = async (ctx, _) => {
     Object.entries(existingUser).forEach((e) => user.set(e[0], e[1]));
   }
 
-  const publicKeyCredentialJSON: PublicKeyCredentialJSON = await ctx.req
+  const publicKeyCredentialJSON: RegistrationResponseJSON = await ctx.req
     .json();
   const response = publicKeyCredentialJSON.response;
   const clientData = decodeClientDataJSON(response.clientDataJSON);
@@ -132,7 +132,7 @@ export const create1: Middleware = async (ctx, _) => {
     insertPasskey({
       id: publicKeyCredentialJSON.id,
       alg: publicKeyCredentialJSON.response.publicKeyAlgorithm,
-      public_key: publicKeyCredentialJSON.response.publicKey,
+      public_key: publicKeyCredentialJSON.response.publicKey!,
       user_id: user.get("id") as number | bigint,
     }) !== 1
   ) {

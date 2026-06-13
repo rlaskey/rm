@@ -22,7 +22,8 @@ export const get1: Middleware = async (ctx, _) => {
     return;
   }
 
-  const publicKeyCredentialJSON: PublicKeyCredentialJSON = await ctx.req.json();
+  const publicKeyCredentialJSON: AuthenticationResponseJSON = await ctx.req
+    .json();
   const passkey = db.prepare("SELECT * FROM passkey WHERE id = ?").get(
     publicKeyCredentialJSON.id,
   ) as Passkey | undefined;

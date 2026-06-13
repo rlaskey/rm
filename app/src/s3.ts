@@ -120,7 +120,7 @@ class S3Client {
     const response = await fetch(url, {
       method: command.method,
       headers,
-      body: bodyEncoded,
+      body: bodyEncoded as BodyInit,
     });
 
     if (!response.ok) {

@@ -45,8 +45,9 @@ const Layer1 = () => {
         })
       ).then((credential) => {
         if (!credential) throw new Error("Empty Credential.");
-        return (credential as PublicKeyCredential).toJSON();
-      }).then((j: PublicKeyCredentialJSON) =>
+        return (credential as PublicKeyCredential)
+          .toJSON() as RegistrationResponseJSON;
+      }).then((j) =>
         fetch("/1/credentials/create/1", {
           method: "POST",
           body: JSON.stringify(j),
