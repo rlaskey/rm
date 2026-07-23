@@ -14,11 +14,10 @@ export const getState = (reqHeaders: Headers): State | null => {
   const id: string | null = getSessionId(reqHeaders);
   if (id === null) return null;
 
-  using stmt = db.prepare(
+  const select = db.prepare(
     "SELECT s.*, u.name, u.write FROM session s " +
       "LEFT JOIN user u ON s.user_id = u.id WHERE s.id = ?",
-  );
-  const select = stmt.get(id);
+  ).get(id);
   if (!select) return null;
 
   const result = {
@@ -42,10 +41,7 @@ export const getState = (reqHeaders: Headers): State | null => {
       uaToMatch(userAgent(reqHeaders)),
       result.session?.data.get("userAgentMatch"),
     )
-  ) {
-    db.prepare("DELETE FROM session WHERE id = ?").run(id);
-    return null;
-  }
+  ) return null;
 
   return result;
 };

@@ -1,24 +1,22 @@
+import { z } from "zod";
+
 import { useState } from "preact/hooks";
 
-import { type SupportedArraysCBOR } from "../../../src/cbor.ts";
+import type { SupportedMapsCBOR } from "../../../src/cbor.ts";
 
 import { cborDecode } from "../../../src/cbor-decode.ts";
 import { cborRequestInit } from "../../../src/cbor-encode.ts";
 
-import { aReference } from "../../src/data.ts";
+import { dbReference, mapToZodObject } from "../../src/data.ts";
 
 export const ArticleReferences = (
   props: {
     articleId: bigint;
-    references: Record<string, typeof aReference.valueType>[];
-    setReferences: (
-      value: Record<string, typeof aReference.valueType>[],
-    ) => void;
+    references: (z.infer<typeof dbReference>)[];
+    setReferences: (value: (z.infer<typeof dbReference>)[]) => void;
   },
 ) => {
-  const [found, setFound] = useState<
-    Record<string, typeof aReference.valueType>[]
-  >([]);
+  const [found, setFound] = useState<(z.infer<typeof dbReference>)[]>([]);
 
   const unlink = (referenceId: bigint) => () =>
     fetch(
@@ -28,7 +26,7 @@ export const ArticleReferences = (
       props.setReferences(props.references.filter((r) => r.id !== referenceId))
     );
 
-  const link = (reference: Record<string, typeof aReference.valueType>) => () =>
+  const link = (reference: z.infer<typeof dbReference>) => () =>
     fetch(
       "/3/articleReference",
       cborRequestInit({
@@ -52,16 +50,15 @@ export const ArticleReferences = (
       "/2/q/r",
       cborRequestInit({ q, omit: props.references.map((r) => r.id) }),
     )
-      .then(async (res) =>
+      .then(async (res) => {
         setFound(
-          (cborDecode(await res.bytes()) as SupportedArraysCBOR).map((a) =>
-            aReference.networkToState(a) as Record<
-              string,
-              typeof aReference.valueType
-            >
-          ),
-        )
-      );
+          (cborDecode(await res.bytes()) as SupportedMapsCBOR[]).map((a) => {
+            const spr = mapToZodObject(a, dbReference);
+            if (!spr.success) throw new Error(spr.error.message);
+            return spr.data;
+          }),
+        );
+      });
   };
 
   return (

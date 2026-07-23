@@ -5,9 +5,11 @@ import { cborResponse } from "../../../../src/cbor-encode.ts";
 import {
   decodeAuthenticatorData,
   decodeClientDataJSON,
+} from "../../../../src/passkeys.ts";
+import {
   insertPasskey,
   publicKeyCredentialCreationOptions,
-} from "../../../../src/passkeys.ts";
+} from "../../../../src/passkeys-site.ts";
 import { db } from "../../../../src/sqlite.ts";
 
 export const create1: Middleware = async (ctx, _) => {
@@ -31,15 +33,18 @@ export const create1: Middleware = async (ctx, _) => {
       ctx.res = new Response("User not found.", { status: 400 });
       return;
     }
-    using stmt = db.prepare("SELECT * FROM user WHERE id = ?");
-    const existingUser = stmt.get(ctx.state.session.user_id);
+    const existingUser = db.prepare("SELECT * FROM user WHERE id = ?").get(
+      ctx.state.session.user_id,
+    );
     if (!existingUser) {
       ctx.state.session.user_id = null;
       ctx.res = new Response("User not found.", { status: 400 });
       return;
     }
 
-    Object.entries(existingUser).forEach((e) => user.set(e[0], e[1]));
+    Object.entries(existingUser).forEach((e) =>
+      user.set(e[0], e[1] as string | bigint)
+    );
   }
 
   const publicKeyCredentialJSON: RegistrationResponseJSON = await ctx.req
@@ -119,13 +124,14 @@ export const create1: Middleware = async (ctx, _) => {
 
   // Convert a FutureUser to a User.
   if (typeof user.get("id") === "string") {
-    using stmt = db.prepare("INSERT INTO user (name) VALUES (?)");
-    const changes = stmt.run(user.get("name") as string);
-    if (changes !== 1) {
+    const src = db.prepare("INSERT INTO user (name) VALUES (?)").run(
+      user.get("name") as string,
+    );
+    if (src.changes != 1) {
       ctx.res = new Response("Failed to save User.", { status: 400 });
       return;
     }
-    user.set("id", db.lastInsertRowId);
+    user.set("id", src.lastInsertRowid);
   }
 
   if (
@@ -134,7 +140,7 @@ export const create1: Middleware = async (ctx, _) => {
       alg: publicKeyCredentialJSON.response.publicKeyAlgorithm,
       public_key: publicKeyCredentialJSON.response.publicKey!,
       user_id: user.get("id") as number | bigint,
-    }) !== 1
+    }) != 1
   ) {
     ctx.res = new Response("Failed to save Passkey.", { status: 400 });
     return;

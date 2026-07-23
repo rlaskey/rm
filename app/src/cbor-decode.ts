@@ -46,6 +46,7 @@ const additionalInformation = (
     return ["31", start + 1];
   }
 
+  console.error("Malformed additionalInformation.", uint8Array.toHex()); // TODO remove
   throw new Error("Malformed additionalInformation.");
 };
 

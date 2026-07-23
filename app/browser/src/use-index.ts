@@ -1,36 +1,31 @@
+import { z } from "zod";
+
 import { useEffect, useState } from "preact/hooks";
 import { useLocation } from "preact-iso/router";
 
-import {
-  type SupportedArraysCBOR,
-  type SupportedMapsCBOR,
-} from "../../src/cbor.ts";
+import type { SupportedMapsCBOR } from "../../src/cbor.ts";
 
 import { cborDecode } from "../../src/cbor-decode.ts";
 
-import { aFile, anArticle, aReference } from "./data.ts";
+import { dbArticle, dbFile, dbReference, mapToZodObject } from "./data.ts";
 
 export const useIndex = () => {
-  const [files, setFiles] = useState<
-    Record<string, typeof aFile.valueType>[]
-  >([]);
+  const [files, setFiles] = useState<(z.infer<typeof dbFile>)[]>([]);
   const [backFile, setBackFile] = useState<bigint | undefined>();
 
-  const [drafts, setDrafts] = useState<
-    Record<string, typeof anArticle.valueType>[]
-  >([]);
+  const [drafts, setDrafts] = useState<(z.infer<typeof dbArticle>)[]>([]);
   const [backDraft, setBackDraft] = useState(0n);
 
-  const [published, setPublished] = useState<
-    Record<string, typeof anArticle.valueType>[]
-  >([]);
+  const [published, setPublished] = useState<(z.infer<typeof dbArticle>)[]>(
+    [],
+  );
   const [backPublished, setBackPublished] = useState<
     [bigint, bigint] | undefined
   >();
 
-  const [references, setReferences] = useState<
-    Record<string, typeof aReference.valueType>[]
-  >([]);
+  const [references, setReferences] = useState<(z.infer<typeof dbReference>)[]>(
+    [],
+  );
   const [backReference, setBackReference] = useState<bigint | undefined>();
 
   const location = useLocation();
@@ -46,39 +41,38 @@ export const useIndex = () => {
       const r = cborDecode(await res.bytes()) as SupportedMapsCBOR;
 
       setFiles(
-        (r.get("files") as SupportedArraysCBOR).map((x) =>
-          aFile.networkToState(x) as Record<string, typeof aFile.valueType>
-        ),
+        (r.get("files") as SupportedMapsCBOR[]).map((x) => {
+          const spr = mapToZodObject(x, dbFile);
+          if (!spr.success) throw new Error(spr.error.message);
+          return spr.data;
+        }),
       );
       setBackFile(BigInt((r.get("backFile") as bigint | undefined) || 0n));
 
       setDrafts(
-        (r.get("drafts") as SupportedArraysCBOR).map((x) =>
-          anArticle.networkToState(x) as Record<
-            string,
-            typeof anArticle.valueType
-          >
-        ),
+        (r.get("drafts") as SupportedMapsCBOR[]).map((x) => {
+          const spr = mapToZodObject(x, dbArticle);
+          if (!spr.success) throw new Error(spr.error.message);
+          return spr.data;
+        }),
       );
       setBackDraft(BigInt((r.get("backDraft") as bigint | undefined) || 0n));
 
       setPublished(
-        (r.get("published") as SupportedArraysCBOR).map((x) =>
-          anArticle.networkToState(x) as Record<
-            string,
-            typeof anArticle.valueType
-          >
-        ),
+        (r.get("published") as SupportedMapsCBOR[]).map((x) => {
+          const spr = mapToZodObject(x, dbArticle);
+          if (!spr.success) throw new Error(spr.error.message);
+          return spr.data;
+        }),
       );
       setBackPublished(r.get("backPublished") as typeof backPublished);
 
       setReferences(
-        (r.get("references") as SupportedArraysCBOR).map((x) =>
-          aReference.networkToState(x) as Record<
-            string,
-            typeof aReference.valueType
-          >
-        ),
+        (r.get("references") as SupportedMapsCBOR[]).map((x) => {
+          const spr = mapToZodObject(x, dbReference);
+          if (!spr.success) throw new Error(spr.error.message);
+          return spr.data;
+        }),
       );
       setBackReference(r.get("backReference") as bigint | undefined);
     });

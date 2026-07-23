@@ -1,28 +1,23 @@
+import { z } from "zod";
+
 import { useEffect, useState } from "preact/hooks";
 import { useLocation, useRoute } from "preact-iso/router";
 
-import {
-  type SupportedArraysCBOR,
-  type SupportedMapsCBOR,
-} from "../../src/cbor.ts";
+import type { SupportedMapsCBOR } from "../../src/cbor.ts";
 
 import { cborDecode } from "../../src/cbor-decode.ts";
 
-import { aLabeledURL, anArticle, aReference } from "./data.ts";
+import { dbArticle, dbReference, dbURL, mapToZodObject } from "./data.ts";
 
 export const useReference = () => {
-  const [reference, setReference] = useState<
-    Record<string, typeof aReference.valueType>
-  >({});
-  const [labeledURLs, setLabeledURLs] = useState<
-    Record<string, typeof aLabeledURL.valueType>[]
-  >([]);
-  const [articles, setArticles] = useState<
-    Record<string, typeof anArticle.valueType>[]
-  >([]);
-  const [references, setReferences] = useState<
-    Record<string, typeof aReference.valueType>[]
-  >([]);
+  const [reference, setReference] = useState<z.infer<typeof dbReference>>();
+  const [labeledURLs, setLabeledURLs] = useState<(z.infer<typeof dbURL>)[]>([]);
+  const [articles, setArticles] = useState<(z.infer<typeof dbArticle>)[]>(
+    [],
+  );
+  const [references, setReferences] = useState<(z.infer<typeof dbReference>)[]>(
+    [],
+  );
 
   const route = useRoute();
   const location = useLocation();
@@ -32,38 +27,35 @@ export const useReference = () => {
       fetch("/2/reference/" + route.params.id).then(
         async (res) => {
           const r = cborDecode(await res.bytes()) as SupportedMapsCBOR;
-          setReference(
-            aReference.networkToState(r.get("reference")) as Record<
-              string,
-              typeof aReference.valueType
-            >,
+          const sprR = mapToZodObject(
+            r.get("reference") as SupportedMapsCBOR,
+            dbReference,
           );
+          if (!sprR.success) throw new Error(sprR.error.message);
+          setReference(sprR.data);
 
           setLabeledURLs(
-            (r.get("labeledURLs") as SupportedArraysCBOR).map((x) =>
-              aLabeledURL.networkToState(x) as Record<
-                string,
-                typeof aLabeledURL.valueType
-              >
-            ),
+            (r.get("labeledURLs") as SupportedMapsCBOR[]).map((x) => {
+              const spr = mapToZodObject(x, dbURL);
+              if (!spr.success) throw new Error(spr.error.message);
+              return spr.data;
+            }),
           );
 
           setArticles(
-            (r.get("articles") as SupportedArraysCBOR).map((x) =>
-              anArticle.networkToState(x) as Record<
-                string,
-                typeof anArticle.valueType
-              >
-            ),
+            (r.get("articles") as SupportedMapsCBOR[]).map((x) => {
+              const spr = mapToZodObject(x, dbArticle);
+              if (!spr.success) throw new Error(spr.error.message);
+              return spr.data;
+            }),
           );
 
           setReferences(
-            (r.get("references") as SupportedArraysCBOR).map((x) =>
-              aReference.networkToState(x) as Record<
-                string,
-                typeof aReference.valueType
-              >
-            ),
+            (r.get("references") as SupportedMapsCBOR[]).map((x) => {
+              const spr = mapToZodObject(x, dbReference);
+              if (!spr.success) throw new Error(spr.error.message);
+              return spr.data;
+            }),
           );
         },
       );

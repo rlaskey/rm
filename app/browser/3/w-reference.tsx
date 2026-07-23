@@ -3,13 +3,18 @@ import { useState } from "preact/hooks";
 import { cborDecode } from "../../src/cbor-decode.ts";
 import { cborRequestInit } from "../../src/cbor-encode.ts";
 
-import { aReference } from "../src/data.ts";
+import {
+  dbReference,
+  formElementsToZodObject,
+  mapToZodObject,
+} from "../src/data.ts";
 import { Status, statusState } from "../src/status.tsx";
 import { useReference } from "../src/use-reference.ts";
 
 import { LabeledURLs } from "./w-reference/url.tsx";
 import { ReferenceArticles } from "./w-reference/reference-articles.tsx";
 import { PairReferences } from "./w-reference/pair-references.tsx";
+import { SupportedMapsCBOR } from "../../src/cbor.ts";
 
 export const WriteReference = () => {
   const {
@@ -30,49 +35,36 @@ export const WriteReference = () => {
     setStatus(statusState(""));
     const form = event.currentTarget as HTMLFormElement;
 
-    if (reference.id) {
-      const payload = new Map<string, typeof aReference.valueType>();
-      aReference.schema.forEach((c) => {
-        const element = form.elements.namedItem(c.name) as
-          | HTMLFormElement
-          | null;
-        if (!element) return;
-
-        const n = c.browserToNetwork(element.value) as string | null;
-        if (n === reference[c.name]) return;
-
-        payload.set(c.name, n);
-      });
-
-      if (!payload.size) {
-        return setStatus(statusState("Nothing to save.", "warning"));
-      }
+    if (reference?.id) {
+      const sprI = formElementsToZodObject(
+        form.elements,
+        dbReference.omit({ id: true }),
+      );
+      if (!sprI.success) return setStatus(statusState(sprI.error.message));
 
       fetch(
         "/3/reference/" + String(BigInt(reference.id as number | bigint)),
-        cborRequestInit(payload),
+        cborRequestInit(sprI.data),
       ).then(async (res) => {
         if (!res.ok) throw new Error(await res.text() || "Save failed.");
-        setReference(
-          aReference.networkToState(cborDecode(await res.bytes())) as Record<
-            string,
-            typeof aReference.valueType
-          >,
+        const spr = mapToZodObject(
+          cborDecode(await res.bytes()) as SupportedMapsCBOR,
+          dbReference,
         );
+        if (!spr.success) throw new Error(spr.error.message);
+        setReference(spr.data);
         setStatus(statusState("Saved."));
       }).catch((e: Error) => {
         setStatus(statusState(String(e.message || e), "error"));
       });
     } else {
-      const payload = new Map<string, string | bigint | null>();
-      aReference.schema.forEach((c) => {
-        const element = form.elements.namedItem(c.name) as
-          | HTMLFormElement
-          | null;
-        if (element) payload.set(c.name, c.browserToNetwork(element.value));
-      });
+      const sprI = formElementsToZodObject(
+        form.elements,
+        dbReference.omit({ id: true }),
+      );
+      if (!sprI.success) return setStatus(statusState(sprI.error.message));
 
-      fetch("/3/reference", cborRequestInit(payload))
+      fetch("/3/reference", cborRequestInit(sprI.data))
         .then(async (res) => {
           const d = cborDecode(await res.bytes()) as number | bigint;
           location.route("/w/r/" + d);
@@ -85,7 +77,7 @@ export const WriteReference = () => {
   return (
     <>
       <h1>
-        Reference{reference.id && ": " + String(reference.id).padStart(4, "0")}
+        Reference{reference && ": " + String(reference.id).padStart(4, "0")}
       </h1>
       <form onSubmit={submit}>
         <label>
@@ -94,7 +86,7 @@ export const WriteReference = () => {
             type="text"
             required
             name="name"
-            value={reference.name as string}
+            value={reference?.name}
           />
         </label>
 
@@ -104,17 +96,17 @@ export const WriteReference = () => {
         </p>
       </form>
 
-      {reference.id && (
+      {reference && (
         <>
           <hr />
           <LabeledURLs
-            referenceId={reference.id as string}
+            referenceId={reference.id}
             {...{ labeledURLs, setLabeledURLs }}
           />
 
           <hr />
           <ReferenceArticles
-            referenceId={BigInt(reference.id)}
+            referenceId={reference.id}
             {...{ articles, setArticles }}
           />
 

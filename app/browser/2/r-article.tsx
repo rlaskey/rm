@@ -1,18 +1,18 @@
 import { ArticleA } from "../src/article.tsx";
-import { dateToLocal } from "../src/dates.ts";
+import { epochSecondsToLocal } from "../src/dates.ts";
 import { useArticle } from "../src/use-article.ts";
 
 export const ReadArticle = () => {
   const { article, references, articles } = useArticle();
 
-  if (!article.id) return;
   return (
     <>
       <h1>
         {article.title || "Article #" + String(article.id).padStart(4, "0")}
       </h1>
       <h2>
-        {dateToLocal(article.published as Date).replace("T", " ") || "DRAFT"}
+        {epochSecondsToLocal(article.published || 0n).replace("T", " ") ||
+          "DRAFT"}
       </h2>
 
       <pre>{article.words}</pre>

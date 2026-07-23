@@ -1,23 +1,23 @@
+import { z } from "zod";
+
 import { useState } from "preact/hooks";
 
-import { type SupportedArraysCBOR } from "../../../src/cbor.ts";
+import type { SupportedMapsCBOR } from "../../../src/cbor.ts";
 
 import { cborRequestInit } from "../../../src/cbor-encode.ts";
 import { cborDecode } from "../../../src/cbor-decode.ts";
 
-import { anArticle } from "../../src/data.ts";
+import { dbArticle, mapToZodObject } from "../../src/data.ts";
 import { ArticleA } from "../../src/article.tsx";
 
 export const ReferenceArticles = (
   props: {
     referenceId: bigint;
-    articles: Record<string, typeof anArticle.valueType>[];
-    setArticles: (value: Record<string, typeof anArticle.valueType>[]) => void;
+    articles: z.infer<typeof dbArticle>[];
+    setArticles: (value: z.infer<typeof dbArticle>[]) => void;
   },
 ) => {
-  const [found, setFound] = useState<
-    Record<string, typeof anArticle.valueType>[]
-  >([]);
+  const [found, setFound] = useState<z.infer<typeof dbArticle>[]>([]);
 
   const unlink = (articleId: bigint) => () =>
     fetch(
@@ -27,7 +27,7 @@ export const ReferenceArticles = (
       props.setArticles(props.articles.filter((a) => a.id !== articleId))
     );
 
-  const link = (article: Record<string, typeof anArticle.valueType>) => () =>
+  const link = (article: z.infer<typeof dbArticle>) => () =>
     fetch(
       "/3/articleReference",
       cborRequestInit({
@@ -53,12 +53,11 @@ export const ReferenceArticles = (
     )
       .then(async (res) =>
         setFound(
-          (cborDecode(await res.bytes()) as SupportedArraysCBOR).map((a) =>
-            anArticle.networkToState(a) as Record<
-              string,
-              typeof anArticle.valueType
-            >
-          ),
+          (cborDecode(await res.bytes()) as SupportedMapsCBOR[]).map((a) => {
+            const spr = mapToZodObject(a, dbArticle);
+            if (!spr.success) throw new Error(spr.error.message);
+            return spr.data;
+          }),
         )
       );
   };

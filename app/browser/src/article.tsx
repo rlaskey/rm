@@ -1,27 +1,29 @@
+import { z } from "zod";
+
 import { type LocationHook } from "preact-iso/router";
 
-import { anArticle } from "./data.ts";
-import { dateToLocal } from "./dates.ts";
+import { dbArticle } from "./data.ts";
+import { epochSecondsToLocal } from "./dates.ts";
 import { SELECT_LIMIT } from "./site.ts";
 
 export const ArticleA = (
-  props: { prefix: string; a: Record<string, typeof anArticle.valueType> },
+  props: { prefix: string; a: z.infer<typeof dbArticle> },
 ) => (
   <>
     <a href={props.prefix + props.a.id}>
       #{String(props.a.id).padStart(4, "0")}
     </a>
     {props.a.published &&
-      " -- " + dateToLocal(props.a.published as Date).replace("T", " ")}
+      " -- " + epochSecondsToLocal(props.a.published).replace("T", " ")}
     {props.a.title && " -- " + props.a.title}
-    {props.a.words && " -- " + props.a.words}
+    {" -- " + props.a.words}
   </>
 );
 
 export const PublishedArticles = (
   props: {
     prefix: string;
-    published: Record<string, typeof anArticle.valueType>[];
+    published: (z.infer<typeof dbArticle>)[];
     backPublished: [bigint, bigint] | undefined;
     location: LocationHook;
   },
@@ -41,9 +43,7 @@ export const PublishedArticles = (
   const goForth = () => {
     const q = { ...props.location.query };
     const last = props.published[props.published.length - 1];
-    q["pPublished"] = String(
-      Math.floor((last.published as Date).getTime() / 1000),
-    );
+    q["pPublished"] = String(last.published);
     q["pID"] = String(last.id);
     props.location.route(
       props.location.path + "?" + (new URLSearchParams(q)).toString(),
@@ -75,7 +75,7 @@ export const PublishedArticles = (
 export const DraftArticles = (
   props: {
     prefix: string;
-    drafts: Record<string, typeof anArticle.valueType>[];
+    drafts: (z.infer<typeof dbArticle>)[];
     backDraft: bigint;
     location: LocationHook;
   },

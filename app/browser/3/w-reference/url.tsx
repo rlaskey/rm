@@ -1,19 +1,23 @@
+import { z } from "zod";
+
 import { useState } from "preact/hooks";
 
 import { cborDecode } from "../../../src/cbor-decode.ts";
 import { cborRequestInit } from "../../../src/cbor-encode.ts";
-import { SupportedArraysCBOR } from "../../../src/cbor.ts";
+import type { SupportedMapsCBOR } from "../../../src/cbor.ts";
 
-import { aLabeledURL } from "../../src/data.ts";
+import {
+  dbURL,
+  formElementsToZodObject,
+  mapToZodObject,
+} from "../../src/data.ts";
 import { Status, statusState } from "../../src/status.tsx";
 
 export const LabeledURLs = (
   props: {
-    referenceId: string;
-    labeledURLs: Record<string, typeof aLabeledURL.valueType>[];
-    setLabeledURLs: (
-      value: Record<string, typeof aLabeledURL.valueType>[],
-    ) => void;
+    referenceId: bigint;
+    labeledURLs: (z.infer<typeof dbURL>)[];
+    setLabeledURLs: (value: (z.infer<typeof dbURL>)[]) => void;
   },
 ) => {
   const [status, setStatus] = useState(statusState());
@@ -22,29 +26,29 @@ export const LabeledURLs = (
     event.preventDefault();
     const form = event.currentTarget as HTMLFormElement;
 
-    const payload = new Map<string, typeof aLabeledURL.valueType>([
-      ["reference_id", BigInt(props.referenceId)],
+    const sprI = formElementsToZodObject(
+      form.elements,
+      dbURL.partial({ id: true, reference_id: true }),
+    );
+    if (!sprI.success) throw new Error(sprI.error.message);
+
+    const payload = new Map<string, unknown>([
+      ...Object.entries(sprI.data),
+      ["reference_id", props.referenceId],
       [
         "originalId",
         (form.elements.namedItem("originalId") as HTMLFormElement).value,
       ],
     ]);
-    aLabeledURL.schema.forEach((c) => {
-      const element = form.elements.namedItem(c.name) as HTMLFormElement | null;
-      if (!element) return;
-      const n = c.browserToNetwork(element.value);
-      if (n) payload.set(c.name, n);
-    });
 
     fetch("/3/url", cborRequestInit(payload)).then(async (res) => {
       if (!res.ok) throw new Error(await res.text() || "Save failed.");
       props.setLabeledURLs(
-        (cborDecode(await res.bytes()) as SupportedArraysCBOR).map((x) =>
-          aLabeledURL.networkToState(x) as Record<
-            string,
-            typeof aLabeledURL.valueType
-          >
-        ),
+        (cborDecode(await res.bytes()) as SupportedMapsCBOR[]).map((x) => {
+          const spr = mapToZodObject(x, dbURL);
+          if (!spr.success) throw new Error(spr.error.message);
+          return spr.data;
+        }),
       );
       setStatus(statusState("Saved."));
     }).catch((e: Error) => {
@@ -59,14 +63,14 @@ export const LabeledURLs = (
 
       {props.labeledURLs.map((u) => (
         <form onSubmit={submit}>
-          <input type="hidden" name="originalId" value={u.id as string} />
+          <input type="hidden" name="originalId" value={u.id} />
 
           <label>
-            URL <input type="url" name="id" value={u.id as string} />
+            URL <input type="url" name="id" value={u.id} />
           </label>
 
           <label>
-            Label <input type="text" name="label" value={u.label as string} />
+            Label <input type="text" name="label" value={u.label ?? ""} />
           </label>
           <p>
             <button type="submit">Save</button>

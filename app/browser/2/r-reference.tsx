@@ -9,7 +9,7 @@ export const ReadReference = () => {
     references,
   } = useReference();
 
-  return reference.id && (
+  return reference?.id && (
     <>
       <h1>{reference.name}</h1>
 

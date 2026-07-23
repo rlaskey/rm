@@ -1,12 +1,15 @@
 import { crypto } from "@std/crypto";
 
+import { dbFile, mapToZodObject } from "../../browser/src/data.ts";
+
 import { cborDecode } from "../../src/cbor-decode.ts";
 import { cborResponse } from "../../src/cbor-encode.ts";
 import { Middleware } from "../../src/framework.ts";
+import { r400 } from "../../src/response.ts";
 import { PutObjectCommand, s3, toKey } from "../../src/s3.ts";
 import { db } from "../../src/sqlite.ts";
+import { transaction } from "../../src/transaction.ts";
 import { getId } from "../../src/url.ts";
-import { aFile } from "../../browser/src/data.ts";
 
 // also: ["-colorspace", "RGB"]
 const magickToAVIF = new Deno.Command("magick", {
@@ -15,10 +18,10 @@ const magickToAVIF = new Deno.Command("magick", {
   stdout: "piped",
 });
 
-type BACT = [Uint8Array, string | null];
+type BACT = [Uint8Array<ArrayBuffer>, string | null];
 
 const toAVIF = async (
-  bytes: Uint8Array,
+  bytes: Uint8Array<ArrayBuffer>,
   contentType: string | null,
 ): Promise<BACT> => {
   const spawnToAVIF = magickToAVIF.spawn();
@@ -36,7 +39,7 @@ const toAVIF = async (
 };
 
 const process = async (
-  bytes: Uint8Array,
+  bytes: Uint8Array<ArrayBuffer>,
   contentType: string | null,
 ): Promise<BACT> => {
   if (contentType?.startsWith("image/")) {
@@ -49,26 +52,22 @@ const process = async (
 export const insertFile: Middleware = async (ctx, _) => {
   const reqBytes = await ctx.req.bytes();
   const reqContentType = ctx.req.headers.get("content-type");
+  let lastInsertRowId: number | bigint | undefined;
 
   try {
-    using stmt0 = db.prepare(
-      "INSERT INTO file (md5, content_type) VALUES (?, ?)",
-    );
-    const upload = db.transaction(async (b: Uint8Array, cT: string | null) => {
-      const md5 = new Uint8Array(
-        await crypto.subtle.digest("MD5", b as BufferSource),
-      );
-      stmt0.run(md5, cT);
+    await transaction(db, async (innerDB) => {
+      const [bytes, contentType] = await process(reqBytes, reqContentType);
+      const md5 = new Uint8Array(await crypto.subtle.digest("MD5", bytes));
+      lastInsertRowId = innerDB.prepare(
+        "INSERT INTO file (md5, content_type) VALUES (?, ?)",
+      ).run(md5, contentType).lastInsertRowid;
       await s3.send(
         new PutObjectCommand({
-          Key: toKey(BigInt(db.lastInsertRowId)),
-          Body: b,
+          Key: toKey(BigInt(lastInsertRowId)),
+          Body: bytes,
         }),
       );
     });
-
-    const [bytes, contentType] = await process(reqBytes, reqContentType);
-    await upload(bytes, contentType);
   } catch (e) {
     let error = e;
     while (error instanceof SuppressedError) error = error.suppressed;
@@ -83,7 +82,7 @@ export const insertFile: Middleware = async (ctx, _) => {
     return;
   }
 
-  ctx.res = cborResponse(db.lastInsertRowId);
+  ctx.res = cborResponse(lastInsertRowId);
 };
 
 export const updateFileBytes: Middleware = async (ctx, _) => {
@@ -94,24 +93,15 @@ export const updateFileBytes: Middleware = async (ctx, _) => {
   const reqContentType = ctx.req.headers.get("content-type");
 
   try {
-    using stmt0 = db.prepare(
-      "UPDATE file SET md5 = ?, content_type = ? WHERE id = ?",
-    );
-
-    const upload = db.transaction(
-      async (b: Uint8Array, cT: string | null, PK: bigint) => {
-        const md5 = new Uint8Array(
-          await crypto.subtle.digest("MD5", b as BufferSource),
-        );
-        stmt0.run(md5, cT, PK);
-        await s3.send(
-          new PutObjectCommand({ Key: toKey(BigInt(PK)), Body: b }),
-        );
-      },
-    );
-
-    const [bytes, contentType] = await process(reqBytes, reqContentType);
-    await upload(bytes, contentType, id);
+    await transaction(db, async (innerDB) => {
+      const md5 = new Uint8Array(await crypto.subtle.digest("MD5", reqBytes));
+      innerDB.prepare(
+        "UPDATE file SET md5 = ?, content_type = ? WHERE id = ?",
+      ).run(md5, reqContentType, id);
+      await s3.send(
+        new PutObjectCommand({ Key: toKey(BigInt(id)), Body: reqBytes }),
+      );
+    });
   } catch (e) {
     let error = e;
     while (error instanceof SuppressedError) error = error.suppressed;
@@ -135,30 +125,28 @@ export const updateFileMeta: Middleware = async (ctx, _) => {
 
   const r = cborDecode(await ctx.req.bytes());
   if (!(r instanceof Map)) {
-    ctx.res = new Response("Bad input.", { status: 400 });
+    ctx.res = r400;
     return;
   }
 
-  const file = aFile.forUpdate(r) as Record<string, typeof aFile.valueType>;
-  if (!Object.keys(file).length) {
-    ctx.res = new Response("Empty record.", { status: 500 });
+  const spr = mapToZodObject(r, dbFile.pick({ title: true }));
+  if (!spr.success) {
+    ctx.res = r400;
     return;
   }
 
-  if (!Object.keys(file)) return;
-
-  using stmt0 = db.prepare(
-    "UPDATE file SET " +
-      Object.entries(file).map((e) => e[0] + " = ?").join(", ") +
-      " WHERE id = ?",
-  );
-  if (stmt0.run([...Object.values(file), id]) !== 1) {
+  if (
+    db.prepare(
+      "UPDATE file SET " +
+        Object.keys(spr.data).map((k) => k + " = ?").join(", ") +
+        " WHERE id = ?",
+    ).run(...Object.values(spr.data), id).changes !== 1
+  ) {
     ctx.res = new Response("UPDATE failed.", { status: 500 });
     return;
   }
 
-  using stmt1 = db.prepare("SELECT * FROM file WHERE id = ?");
-  const select = stmt1.get(id);
+  const select = db.prepare("SELECT * FROM file WHERE id = ?").get(id);
   if (!select) {
     ctx.res = new Response("SELECT failed.", { status: 500 });
     return;

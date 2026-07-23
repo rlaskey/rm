@@ -5,10 +5,12 @@ import {
   ALGORITHMS,
   decodeAuthenticatorData,
   decodeClientDataJSON,
-  deletePasskey,
   type Passkey,
-  publicKeyCredentialRequestOptionsJSON,
 } from "../../../../src/passkeys.ts";
+import {
+  deletePasskey,
+  publicKeyCredentialRequestOptionsJSON,
+} from "../../../../src/passkeys-site.ts";
 import { db } from "../../../../src/sqlite.ts";
 
 export const get1: Middleware = async (ctx, _) => {

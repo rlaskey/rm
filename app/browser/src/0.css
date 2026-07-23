@@ -9,7 +9,11 @@ html {
   }
 }
 
-pre, code, input, select, textarea {
+pre,
+code,
+input,
+select,
+textarea {
   font-family: ui-monospace, monospace;
 }
 
@@ -24,7 +28,8 @@ header {
   margin-bottom: 2rem;
 }
 
-menu, ul {
+menu,
+ul {
   padding-inline-start: 1rem;
   text-indent: -1rem;
   list-style-type: none;
@@ -40,14 +45,26 @@ hr {
   margin-block: 2rem;
 }
 
-hr, header, h1, h2, h3, h4, h5, h6 {
+hr,
+header,
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   border-bottom: 2px solid #efefef;
   @media (prefers-color-scheme: dark) {
     border-bottom-color: #242424;
   }
 }
 
-h1, h2, h3, h4, h5, h6 {
+h1,
+h2,
+h3,
+h4,
+h5,
+h6 {
   margin-block: 0 1rem;
   font-weight: inherit;
 }
@@ -64,7 +81,8 @@ h3 {
   font-size: 2rem;
 }
 
-p, pre {
+p,
+pre {
   padding-inline: 1rem;
 }
 
@@ -107,7 +125,8 @@ img {
   border-radius: 0;
 }
 
-audio, video {
+audio,
+video {
   width: 100%;
 }
 
@@ -129,7 +148,10 @@ summary {
   margin-bottom: 0.5rem;
 }
 
-summary, label, button, .pointer {
+summary,
+label,
+button,
+.pointer {
   cursor: pointer;
 }
 
@@ -137,7 +159,10 @@ label {
   display: block;
 }
 
-input, select, textarea, button {
+input,
+select,
+textarea,
+button {
   font-size: 16px;
   border-radius: 0.25rem;
   padding: 0.5rem;
@@ -148,7 +173,9 @@ textarea {
   resize: none;
 }
 
-input, select, textarea {
+input,
+select,
+textarea {
   width: 100%;
   box-sizing: border-box;
   background: transparent;
@@ -162,7 +189,8 @@ input, select, textarea {
   }
 }
 
-input:invalid, textarea:invalid {
+input:invalid,
+textarea:invalid {
   outline: 1px solid #e04040;
 }
 
@@ -170,7 +198,9 @@ summary::marker {
   content: "ℹ️";
 }
 
-.info, .warning, .error {
+.info,
+.warning,
+.error {
   padding-inline-start: 0.5rem;
   border-inline-start: 0.25rem solid;
 }

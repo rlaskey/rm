@@ -1,12 +1,14 @@
+import { z } from "zod";
+
 import { type LocationHook } from "preact-iso/router";
 
-import { aReference } from "./data.ts";
+import { dbReference } from "./data.ts";
 import { SELECT_LIMIT } from "./site.ts";
 
 export const References = (
   props: {
     prefix: string;
-    references: Record<string, typeof aReference.valueType>[];
+    references: (z.infer<typeof dbReference>)[];
     backReference: bigint | undefined;
     location: LocationHook;
   },

@@ -10,28 +10,27 @@ export const getReference: Middleware = (ctx, _) => {
   const id = getId("/2/reference/", ctx.url.pathname);
   if (!id) return;
 
-  using stmt0 = db.prepare("SELECT * FROM reference WHERE id = ?");
-  const r = stmt0.get(id);
+  const r = db.prepare("SELECT * FROM reference WHERE id = ?").get(id);
   if (!r) return;
   const result: Record<string, unknown> = { reference: r };
 
-  using stmt1 = db.prepare("SELECT id, label FROM url WHERE reference_id = ?");
-  result.labeledURLs = stmt1.all(id);
+  result.labeledURLs = db.prepare(
+    "SELECT * FROM url WHERE reference_id = ?",
+  ).all(id);
 
   // MAYBE: WHERE published IS NOT NULL
-  using stmt2 = db.prepare(
-    "SELECT a.id, a.published, a.title FROM article_reference ar " +
+  result.articles = db.prepare(
+    "SELECT a.id, a.published, a.title, SUBSTR(a.words, 0, 43) AS words " +
+      "FROM article_reference ar " +
       "JOIN article a ON ar.article_id = a.id WHERE ar.reference_id = ?",
-  );
-  result.articles = stmt2.all(id);
+  ).all(id);
 
-  using stmt3 = db.prepare(
+  result.references = db.prepare(
     "SELECT r.* FROM reference_pair rp " +
       "JOIN reference r ON r.id = rp.a WHERE rp.b = ? " + "UNION ALL " +
       "SELECT r.* FROM reference_pair rp " +
       "JOIN reference r ON r.id = rp.b WHERE rp.a = ?",
-  );
-  result.references = stmt3.all(id, id);
+  ).all(id, id);
 
   ctx.res = cborResponse(result);
 };
@@ -44,12 +43,10 @@ export const searchReference: Middleware = async (ctx, _) => {
     ? " AND id NOT IN (" + omit.map((_) => "?").join(", ") + ")"
     : "";
 
-  using stmt = db.prepare(
-    "SELECT id, name FROM reference WHERE (id = ? OR name LIKE ?)" + omitSQL,
-  );
-
   const w = "%" + req.get("q") as string + "%";
   ctx.res = cborResponse(
-    stmt.all([...[req.get("q") as string, w], ...omit]),
+    db.prepare(
+      "SELECT id, name FROM reference WHERE (id = ? OR name LIKE ?)" + omitSQL,
+    ).all(req.get("q") as string, w, ...omit),
   );
 };

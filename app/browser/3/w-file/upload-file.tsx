@@ -54,7 +54,7 @@ export const UploadFile = (props: { id: number | bigint }) => {
     <>
       <Status {...status} />
 
-      {uploading ? <p class="warning">🥳 uploading. Please hold.</p> : (
+      {uploading ? <p className="warning">🥳 uploading. Please hold.</p> : (
         <p>
           <input id="upload" type="file" />
           <button type="button" onClick={upload}>Upload</button>

@@ -1,4 +1,4 @@
-import { Database } from "@db/sqlite";
+import { backup } from "node:sqlite";
 
 import { zeroPad } from "../../browser/src/dates.ts";
 
@@ -26,12 +26,9 @@ const gz = async (path: string): Promise<Uint8Array> => {
   return joinUint8Arrays(output);
 };
 
-export const backup: Middleware = async (ctx, _) => {
+export const doBackup: Middleware = async (ctx, _) => {
   const t = await Deno.makeTempFile();
-
-  const dest = new Database(t, { int64: true });
-  db.backup(dest);
-  dest.close();
+  backup(db, t);
 
   const now = new Date();
   const Key = "00-db/" + now.getUTCFullYear() + "/" +

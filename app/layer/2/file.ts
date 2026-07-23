@@ -25,8 +25,7 @@ export const getFile: Middleware = (ctx, _) => {
   const id = getId("/2/file/", ctx.url.pathname);
   if (!id) return;
 
-  using stmt0 = db.prepare("SELECT * FROM file WHERE id = ?");
-  const f = stmt0.get(id);
+  const f = db.prepare("SELECT * FROM file WHERE id = ?").get(id);
   if (!f) return;
   const result: Record<string, unknown> = { file: f };
 

@@ -39,19 +39,17 @@ export const session: Middleware = async (ctx, next) => {
   const data = cborEncode(ctx.state.session.data);
 
   if (!start) {
-    using stmt = db.prepare("INSERT INTO session VALUES (?, ?, ?, ?)");
-    stmt.run(
+    db.prepare("INSERT INTO session VALUES (?, ?, ?, ?)").run(
       ctx.state.session.id,
       data,
       ctx.state.session.updated_at,
       ctx.state.session.user_id,
     );
   } else {
-    using stmt = db.prepare(
+    db.prepare(
       "UPDATE session SET data = ?, updated_at = ?, user_id = ? " +
         "WHERE id = ?",
-    );
-    stmt.run(
+    ).run(
       data,
       ctx.state.session.updated_at,
       ctx.state.session.user_id,

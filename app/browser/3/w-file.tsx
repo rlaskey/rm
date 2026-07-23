@@ -3,15 +3,20 @@ import { useState } from "preact/hooks";
 import { cborDecode } from "../../src/cbor-decode.ts";
 import { cborRequestInit } from "../../src/cbor-encode.ts";
 
-import { aFile } from "../src/data.ts";
+import {
+  dbFile,
+  formElementsToZodObject,
+  mapToZodObject,
+} from "../src/data.ts";
 import { Status, statusState } from "../src/status.tsx";
 import { useFile } from "../src/use-file.ts";
 import { DisplayFile } from "../src/files.tsx";
 import { UploadFile } from "./w-file/upload-file.tsx";
+import { SupportedMapsCBOR } from "../../src/cbor.ts";
 
 export const WriteFile = () => {
   const { file, setFile } = useFile();
-  if (!file.id) return;
+  if (!file?.id) return;
 
   const [status, setStatus] = useState(statusState());
 
@@ -20,34 +25,23 @@ export const WriteFile = () => {
     setStatus(statusState(""));
     const form = event.currentTarget as HTMLFormElement;
 
-    const payload = new Map<string, typeof aFile.valueType>();
-    aFile.schema.forEach((c) => {
-      const element = form.elements.namedItem(c.name) as
-        | HTMLFormElement
-        | null;
-      if (!element) return;
-
-      const n = c.browserToNetwork(element.value) as string | null;
-      if (n === file[c.name]) return;
-
-      payload.set(c.name, n);
-    });
-
-    if (!payload.size) {
-      return setStatus(statusState("Nothing to save.", "warning"));
-    }
+    const sprI = formElementsToZodObject(
+      form.elements,
+      dbFile.pick({ title: true }),
+    );
+    if (!sprI.success) return setStatus(statusState(sprI.error.message));
 
     fetch(
       "/3/file/meta/" + String(BigInt(file.id as number | bigint)),
-      cborRequestInit(payload),
+      cborRequestInit(sprI.data),
     ).then(async (res) => {
       if (!res.ok) throw new Error(await res.text() || "Save failed.");
-      setFile(
-        aFile.networkToState(cborDecode(await res.bytes())) as Record<
-          string,
-          typeof aFile.valueType
-        >,
+      const spr = mapToZodObject(
+        cborDecode(await res.bytes()) as SupportedMapsCBOR,
+        dbFile,
       );
+      if (!spr.success) throw new Error(spr.error.message);
+      setFile(spr.data);
       setStatus(statusState("Saved."));
     }).catch((e: Error) => {
       setStatus(statusState(String(e.message || e), "error"));

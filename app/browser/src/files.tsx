@@ -1,9 +1,11 @@
+import { z } from "zod";
+
 import { type LocationHook } from "preact-iso/router";
 
-import { aFile } from "./data.ts";
+import { dbFile } from "./data.ts";
 import { SELECT_LIMIT } from "./site.ts";
 
-export const DisplayFile = (props: Record<string, typeof aFile.valueType>) => {
+export const DisplayFile = (props: z.infer<typeof dbFile>) => {
   const imageCycle = (event: Event) => {
     const e = event.currentTarget as HTMLElement;
 
@@ -46,7 +48,7 @@ export const DisplayFile = (props: Record<string, typeof aFile.valueType>) => {
 export const Files = (
   props: {
     prefix: string;
-    files: Record<string, typeof aFile.valueType>[];
+    files: (z.infer<typeof dbFile>)[];
     backFile: bigint | undefined;
     location: LocationHook;
   },

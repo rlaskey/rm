@@ -1,24 +1,22 @@
+import { z } from "zod";
+
 import { useState } from "preact/hooks";
 
-import { type SupportedArraysCBOR } from "../../../src/cbor.ts";
+import type { SupportedMapsCBOR } from "../../../src/cbor.ts";
 
 import { cborRequestInit } from "../../../src/cbor-encode.ts";
 import { cborDecode } from "../../../src/cbor-decode.ts";
 
-import { aReference } from "../../src/data.ts";
+import { dbReference, mapToZodObject } from "../../src/data.ts";
 
 export const PairReferences = (
   props: {
     referenceId: bigint;
-    references: Record<string, typeof aReference.valueType>[];
-    setReferences: (
-      value: Record<string, typeof aReference.valueType>[],
-    ) => void;
+    references: z.infer<typeof dbReference>[];
+    setReferences: (value: (z.infer<typeof dbReference>)[]) => void;
   },
 ) => {
-  const [found, setFound] = useState<
-    Record<string, typeof aReference.valueType>[]
-  >([]);
+  const [found, setFound] = useState<(z.infer<typeof dbReference>)[]>([]);
 
   const unpair = (referenceId: bigint) => () =>
     fetch(
@@ -28,7 +26,7 @@ export const PairReferences = (
       props.setReferences(props.references.filter((r) => r.id !== referenceId))
     );
 
-  const pair = (reference: Record<string, typeof aReference.valueType>) => () =>
+  const pair = (reference: z.infer<typeof dbReference>) => () =>
     fetch(
       "/3/referencePair",
       cborRequestInit([reference.id, props.referenceId]),
@@ -54,12 +52,11 @@ export const PairReferences = (
     )
       .then(async (res) =>
         setFound(
-          (cborDecode(await res.bytes()) as SupportedArraysCBOR).map((a) =>
-            aReference.networkToState(a) as Record<
-              string,
-              typeof aReference.valueType
-            >
-          ),
+          (cborDecode(await res.bytes()) as SupportedMapsCBOR[]).map((a) => {
+            const spr = mapToZodObject(a, dbReference);
+            if (!spr.success) throw new Error(spr.error.message);
+            return spr.data;
+          }),
         )
       );
   };

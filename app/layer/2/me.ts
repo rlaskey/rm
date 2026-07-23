@@ -8,8 +8,9 @@ import { db } from "../../src/sqlite.ts";
 const select = (
   user: User,
 ): { name: string; write: boolean; passkeys: string[] } => {
-  using stmt = db.prepare("SELECT id FROM passkey WHERE user_id = ?");
-  const passkeys = stmt.values<[string]>(user.get("id")).flat();
+  const passkeys = db.prepare("SELECT id FROM passkey WHERE user_id = ?").all(
+    user.get("id") as string,
+  ).map((e) => e.id as string);
   return {
     name: user.get("name") as string,
     write: user.get("write") as boolean,
@@ -32,8 +33,12 @@ export const mePOST: Middleware = async (ctx, _) => {
 
   const name = req.get("name") as string;
   if (name) {
-    using stmt = db.prepare("UPDATE user SET name = ? WHERE id = ?");
-    if (stmt.run(name, ctx.state.user?.get("id")) !== 1) {
+    if (
+      db.prepare("UPDATE user SET name = ? WHERE id = ?").run(
+        name,
+        ctx.state.user?.get("id") as string,
+      ).changes != 1
+    ) {
       ctx.res = new Response("Name not saved.", { status: 500 });
       return;
     }

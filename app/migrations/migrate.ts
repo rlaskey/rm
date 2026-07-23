@@ -6,8 +6,10 @@ db.exec(
     "(id INTEGER PRIMARY KEY, v INTEGER NOT NULL);",
 );
 db.exec("INSERT OR IGNORE INTO migrate VALUES (1, -1);");
-using stmt = db.prepare("SELECT v FROM migrate WHERE id = 1");
-let version = (stmt.get() || { v: -1 })["v"] as number;
+let version =
+  (db.prepare("SELECT v FROM migrate WHERE id = 1").get() || { v: -1 })[
+    "v"
+  ] as number;
 
 const up = (id: number): string | null => {
   try {

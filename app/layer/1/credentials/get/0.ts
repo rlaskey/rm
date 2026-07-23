@@ -1,9 +1,9 @@
 import { type Middleware } from "../../../../src/framework.ts";
 
+import { createChallenge } from "../../../../src/passkeys.ts";
 import {
-  createChallenge,
   publicKeyCredentialRequestOptionsJSON,
-} from "../../../../src/passkeys.ts";
+} from "../../../../src/passkeys-site.ts";
 import { blankSession } from "../../../../src/session.ts";
 
 export const get0: Middleware = (ctx, _) => {

@@ -1,8 +1,11 @@
 import { joinUint8Arrays } from "./bytes.ts";
-import { cborEncode } from "./cbor-encode.ts";
-import { HOSTNAME, SITE_NAME } from "./env.ts";
-import { db } from "./sqlite.ts";
-import { User } from "./user.ts";
+
+export interface Passkey {
+  id: Base64URLString;
+  alg: COSEAlgorithmIdentifier;
+  public_key: Base64URLString;
+  user_id: number | bigint;
+}
 
 interface AuthenticatorData {
   rpId: Base64URLString;
@@ -34,28 +37,6 @@ interface CollectedClientData {
     id: Base64URLString;
   };
 }
-
-export interface Passkey {
-  id: Base64URLString;
-  alg: COSEAlgorithmIdentifier;
-  public_key: Base64URLString;
-  user_id: number | bigint;
-}
-
-export const insertPasskey = (passkey: Passkey) => {
-  using stmt = db.prepare("INSERT INTO passkey VALUES (?, ?, ?, ?)");
-  return stmt.run(
-    passkey.id,
-    passkey.alg,
-    passkey.public_key,
-    passkey.user_id,
-  );
-};
-
-export const deletePasskey = (id: Base64URLString) => {
-  using stmt = db.prepare("DELETE FROM passkey WHERE id = ?");
-  return stmt.run(id);
-};
 
 abstract class Algorithm {
   // abstract readonly alg: COSEAlgorithmIdentifier;
@@ -169,40 +150,6 @@ export class ES256 extends Algorithm {
 
 export const ALGORITHMS = new Map<number, Algorithm>([[-7, new ES256()]]);
 
-export const publicKeyCredentialRequestOptionsJSON = (
-  challenge: string,
-): PublicKeyCredentialRequestOptionsJSON => {
-  return {
-    rpId: HOSTNAME,
-    userVerification: "required",
-    challenge,
-  };
-};
-
-export const publicKeyCredentialCreationOptions = (
-  challenge: string,
-  user: User,
-): PublicKeyCredentialCreationOptionsJSON => {
-  return {
-    rp: {
-      id: HOSTNAME,
-      name: SITE_NAME,
-    },
-    pubKeyCredParams: [...ALGORITHMS.keys()].map((e) => {
-      return { alg: e, type: "public-key" };
-    }),
-    user: {
-      id: cborEncode(user.get("id")).toBase64({
-        alphabet: "base64url",
-        omitPadding: true,
-      }),
-      name: user.get("name") as string,
-      displayName: user.get("name") as string,
-    },
-    challenge,
-  };
-};
-
 export const createChallenge = (): Base64URLString =>
   crypto.getRandomValues(new Uint8Array(18)).toBase64({
     alphabet: "base64url",
@@ -236,11 +183,13 @@ export const decodeAuthenticatorData = (
     // It MAY be worthwhile to aggregate these, alongside the UserAgent.
     result.aaguid = u.subarray(37, 53).toBase64({ alphabet: "base64url" });
 
-    const credentialIdLength: number = new DataView(u.buffer, 53, 2)
-      .getUint16(0);
+    const credentialIdLength: number = new DataView(u.buffer, 53, 2).getUint16(
+      0,
+    );
     // NOTE: the parent object, PublicKeyCredentialJSON,
     // already represents this information, in its `id` and `rawId`.
-    result.credentialId = u.subarray(55, 55 + credentialIdLength)
+    result.credentialId = u
+      .subarray(55, 55 + credentialIdLength)
       .toBase64({ alphabet: "base64url" });
 
     // Generally, this is COSE: CBOR Object Signing + Encryption.
@@ -251,10 +200,11 @@ export const decodeAuthenticatorData = (
 
   return result;
 };
-
 export const decodeClientDataJSON = (
   clientDataJSON: Base64URLString,
 ): CollectedClientData =>
-  JSON.parse((new TextDecoder()).decode(
-    Uint8Array.fromBase64(clientDataJSON, { alphabet: "base64url" }),
-  )) as CollectedClientData;
+  JSON.parse(
+    new TextDecoder().decode(
+      Uint8Array.fromBase64(clientDataJSON, { alphabet: "base64url" }),
+    ),
+  ) as CollectedClientData;

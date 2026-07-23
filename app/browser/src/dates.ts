@@ -8,3 +8,6 @@ export const dateToLocal = (date: Date) => {
     zeroPad(date.getDate()) + "T" + zeroPad(date.getHours()) + ":" +
     zeroPad(date.getMinutes());
 };
+
+export const epochSecondsToLocal = (seconds: bigint): string =>
+  seconds < 0n ? "" : dateToLocal(new Date(Number(seconds) * 1000));
