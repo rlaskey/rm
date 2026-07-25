@@ -17,16 +17,18 @@ export const insertReference: Middleware = async (ctx, _) => {
     return;
   }
 
-  const sp = mapToZodObject(r, Reference);
-  if (!sp.success) {
-    ctx.res = r400;
+  const spr = mapToZodObject(r, Reference);
+  if (!spr.success) {
+    ctx.res = new Response(spr.error.message, { status: 400 });
     return;
   }
 
   const src = db.prepare(
-    "INSERT INTO reference (" + Object.keys(sp.data).join(", ") + ") VALUES (" +
-      Object.keys(sp.data).map((_) => "?").join(", ") + ")",
-  ).run(...Object.values(sp.data));
+    "INSERT INTO reference (" + Object.keys(spr.data).join(", ") +
+      ") VALUES (" +
+      Object.keys(spr.data).map((_) => "?").join(", ") +
+      ")",
+  ).run(...Object.values(spr.data));
   if (src.changes != 1) {
     ctx.res = new Response("INSERT failed.", { status: 500 });
     return;
@@ -45,9 +47,9 @@ export const updateReference: Middleware = async (ctx, _) => {
     return;
   }
 
-  const spr = mapToZodObject(r, dbReference);
+  const spr = mapToZodObject(r, dbReference.omit({ id: true }));
   if (!spr.success) {
-    ctx.res = r400;
+    ctx.res = new Response(spr.error.message, { status: 400 });
     return;
   }
 
