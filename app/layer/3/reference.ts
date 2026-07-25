@@ -1,14 +1,13 @@
 import { dbReference, mapToZodObject } from "../../browser/src/data.ts";
 
-import type { Middleware } from "../../src/framework.ts";
-
 import { cborDecode } from "../../src/cbor-decode.ts";
 import { cborResponse } from "../../src/cbor-encode.ts";
+import type { Middleware } from "../../src/framework.ts";
 import { r400 } from "../../src/response.ts";
 import { db } from "../../src/sqlite.ts";
 import { getId } from "../../src/url.ts";
 
-const Reference = dbReference.omit({ "id": true });
+const Reference = dbReference.omit({ id: true });
 
 export const insertReference: Middleware = async (ctx, _) => {
   const r = cborDecode(await ctx.req.bytes());
@@ -47,7 +46,7 @@ export const updateReference: Middleware = async (ctx, _) => {
     return;
   }
 
-  const spr = mapToZodObject(r, dbReference.omit({ id: true }));
+  const spr = mapToZodObject(r, Reference);
   if (!spr.success) {
     ctx.res = new Response(spr.error.message, { status: 400 });
     return;

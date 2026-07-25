@@ -1,9 +1,8 @@
 import { dbArticle, mapToZodObject } from "../../browser/src/data.ts";
 
-import { type Middleware } from "../../src/framework.ts";
-
 import { cborDecode } from "../../src/cbor-decode.ts";
 import { cborResponse } from "../../src/cbor-encode.ts";
+import type { Middleware } from "../../src/framework.ts";
 import { r400 } from "../../src/response.ts";
 import { db } from "../../src/sqlite.ts";
 import { getId } from "../../src/url.ts";
