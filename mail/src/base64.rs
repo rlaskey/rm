@@ -5,10 +5,8 @@
 //! about invalid characters and misplaced `=`, matching what the original
 //! `@std/encoding` `decodeBase64` accepts for well-formed mail bodies.
 
-const STD_ALPHABET: &[u8; 64] =
-    b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
-const URL_ALPHABET: &[u8; 64] =
-    b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
+const STD_ALPHABET: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789+/";
+const URL_ALPHABET: &[u8; 64] = b"ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789-_";
 
 fn encode_with(data: &[u8], alphabet: &[u8; 64]) -> String {
     let mut out = String::with_capacity(data.len().div_ceil(3) * 4);
@@ -54,18 +52,21 @@ impl std::fmt::Display for DecodeError {
 
 impl std::error::Error for DecodeError {}
 
-fn decode_table() -> [u8; 256] {
+/// Reverse lookup for the standard alphabet; 0xFF marks invalid bytes.
+const DECODE_TABLE: [u8; 256] = {
     let mut table = [0xFFu8; 256];
-    for (i, &c) in STD_ALPHABET.iter().enumerate() {
-        table[c as usize] = i as u8;
+    let mut i = 0;
+    while i < 64 {
+        table[STD_ALPHABET[i] as usize] = i as u8;
+        i += 1;
     }
     table
-}
+};
 
 /// Decode standard base64. Accepts a padded or unpadded final quantum;
 /// rejects characters outside the alphabet and `=` anywhere but trailing.
 pub fn decode(input: &str) -> Result<Vec<u8>, DecodeError> {
-    let table = decode_table();
+    let table = &DECODE_TABLE;
     let b = input.as_bytes();
     if b.len() % 4 == 1 {
         return Err(DecodeError("length mod 4 == 1".to_string()));
@@ -96,7 +97,13 @@ pub fn decode(input: &str) -> Result<Vec<u8>, DecodeError> {
                 return Err(invalid(c));
             }
         }
-        let v = |c: u8| if c == b'=' { 0 } else { table[c as usize] as u32 };
+        let v = |c: u8| {
+            if c == b'=' {
+                0
+            } else {
+                table[c as usize] as u32
+            }
+        };
         let n = (v(g[0]) << 18) | (v(g[1]) << 12) | (v(g[2]) << 6) | v(g[3]);
         out.push((n >> 16) as u8);
         if pad < 2 {
@@ -146,7 +153,11 @@ mod tests {
         ];
         for (plain, encoded) in cases {
             assert_eq!(encode(plain.as_bytes()), encoded, "encode {plain:?}");
-            assert_eq!(decode(encoded).unwrap(), plain.as_bytes(), "decode {encoded:?}");
+            assert_eq!(
+                decode(encoded).unwrap(),
+                plain.as_bytes(),
+                "decode {encoded:?}"
+            );
         }
     }
 

@@ -29,64 +29,67 @@ const K: [u32; 64] = [
     0xf7537e82, 0xbd3af235, 0x2ad7d2bb, 0xeb86d391,
 ];
 
+/// MD5 compression function, RFC 1321 section 3.4: absorb one 64-byte block
+/// into the chaining `state` `[a, b, c, d]`.
+fn compress(state: &mut [u32; 4], block: &[u8; 64]) {
+    let mut m = [0u32; 16];
+    for (w, b) in m.iter_mut().zip(block.as_chunks::<4>().0) {
+        *w = u32::from_le_bytes(*b);
+    }
+
+    let [mut a, mut b, mut c, mut d] = *state;
+    for i in 0..64 {
+        let (f, g) = match i / 16 {
+            0 => ((b & c) | (!b & d), i),
+            1 => ((d & b) | (!d & c), (5 * i + 1) % 16),
+            2 => (b ^ c ^ d, (3 * i + 5) % 16),
+            _ => (c ^ (b | !d), (7 * i) % 16),
+        };
+        let tmp = d;
+        d = c;
+        c = b;
+        b = b.wrapping_add(
+            a.wrapping_add(f)
+                .wrapping_add(K[i])
+                .wrapping_add(m[g])
+                .rotate_left(S[i]),
+        );
+        a = tmp;
+    }
+
+    state[0] = state[0].wrapping_add(a);
+    state[1] = state[1].wrapping_add(b);
+    state[2] = state[2].wrapping_add(c);
+    state[3] = state[3].wrapping_add(d);
+}
+
 /// Compute the MD5 digest of `data`.
 pub fn md5(data: &[u8]) -> [u8; 16] {
-    let mut a0: u32 = 0x67452301;
-    let mut b0: u32 = 0xefcdab89;
-    let mut c0: u32 = 0x98badcfe;
-    let mut d0: u32 = 0x10325476;
+    // Initial chaining state, RFC 1321 section 3.3.
+    let mut state = [0x67452301, 0xefcdab89, 0x98badcfe, 0x10325476];
 
-    // Padding: 0x80, zeros to 56 mod 64, then the bit length as u64 LE.
-    let bit_len = (data.len() as u64).wrapping_mul(8);
-    let mut msg = data.to_vec();
-    msg.push(0x80);
-    while msg.len() % 64 != 56 {
-        msg.push(0);
+    // Full 64-byte blocks are compressed straight from `data` — no copy.
+    let (blocks, tail) = data.as_chunks::<64>();
+    for block in blocks {
+        compress(&mut state, block);
     }
-    msg.extend_from_slice(&bit_len.to_le_bytes());
 
-    for block in msg.chunks_exact(64) {
-        let mut m = [0u32; 16];
-        for (j, w) in m.iter_mut().enumerate() {
-            *w = u32::from_le_bytes([
-                block[4 * j],
-                block[4 * j + 1],
-                block[4 * j + 2],
-                block[4 * j + 3],
-            ]);
-        }
-
-        let (mut a, mut b, mut c, mut d) = (a0, b0, c0, d0);
-        for i in 0..64 {
-            let (f, g) = match i / 16 {
-                0 => ((b & c) | (!b & d), i),
-                1 => ((d & b) | (!d & c), (5 * i + 1) % 16),
-                2 => (b ^ c ^ d, (3 * i + 5) % 16),
-                _ => (c ^ (b | !d), (7 * i) % 16),
-            };
-            let tmp = d;
-            d = c;
-            c = b;
-            b = b.wrapping_add(
-                a.wrapping_add(f)
-                    .wrapping_add(K[i])
-                    .wrapping_add(m[g])
-                    .rotate_left(S[i]),
-            );
-            a = tmp;
-        }
-
-        a0 = a0.wrapping_add(a);
-        b0 = b0.wrapping_add(b);
-        c0 = c0.wrapping_add(c);
-        d0 = d0.wrapping_add(d);
+    // Padding: 0x80, zeros to 56 mod 64, then the bit length as u64 LE. The
+    // tail plus padding spans at most two blocks, built in a fixed buffer.
+    let bit_len = (data.len() as u64).wrapping_mul(8);
+    let mut padded = [0u8; 128];
+    padded[..tail.len()].copy_from_slice(tail);
+    padded[tail.len()] = 0x80;
+    let end = if tail.len() < 56 { 64 } else { 128 };
+    padded[end - 8..end].copy_from_slice(&bit_len.to_le_bytes());
+    for block in padded[..end].as_chunks::<64>().0 {
+        compress(&mut state, block);
     }
 
     let mut out = [0u8; 16];
-    out[0..4].copy_from_slice(&a0.to_le_bytes());
-    out[4..8].copy_from_slice(&b0.to_le_bytes());
-    out[8..12].copy_from_slice(&c0.to_le_bytes());
-    out[12..16].copy_from_slice(&d0.to_le_bytes());
+    for (i, w) in state.iter().enumerate() {
+        out[4 * i..4 * i + 4].copy_from_slice(&w.to_le_bytes());
+    }
     out
 }
 
@@ -106,7 +109,10 @@ mod tests {
             ("a", "0cc175b9c0f1b6a831c399e269772661"),
             ("abc", "900150983cd24fb0d6963f7d28e17f72"),
             ("message digest", "f96b697d7cb7938d525a2f31aaf161d0"),
-            ("abcdefghijklmnopqrstuvwxyz", "c3fcd3d76192e4007dfb496cca67e13b"),
+            (
+                "abcdefghijklmnopqrstuvwxyz",
+                "c3fcd3d76192e4007dfb496cca67e13b",
+            ),
             (
                 "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789",
                 "d174ab98d277d9f5a5611c2c9f419d9f",

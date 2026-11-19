@@ -175,8 +175,14 @@ mod tests {
 
         assert_eq!(param_value("a=\"1=2\"", "a").as_deref(), Some("1=2"));
 
-        assert_eq!(param_value("a=1;b=2;c=\"3\\\"\"", "c").as_deref(), Some("3\""));
-        assert_eq!(param_value("a=1;b=2;c=\"3\"\"", "c").as_deref(), Some("3\""));
+        assert_eq!(
+            param_value("a=1;b=2;c=\"3\\\"\"", "c").as_deref(),
+            Some("3\"")
+        );
+        assert_eq!(
+            param_value("a=1;b=2;c=\"3\"\"", "c").as_deref(),
+            Some("3\"")
+        );
     }
 
     #[test]

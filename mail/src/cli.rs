@@ -27,13 +27,13 @@ pub struct Cli {
 
 impl Cli {
     pub fn validate(&self) -> std::io::Result<()> {
-        if let Some(input) = &self.input {
-            if !input.is_file() {
-                return Err(Error::new(
-                    ErrorKind::NotFound,
-                    format!("{} is not a file.", input.display()),
-                ));
-            }
+        if let Some(input) = &self.input
+            && !input.is_file()
+        {
+            return Err(Error::new(
+                ErrorKind::NotFound,
+                format!("{} is not a file.", input.display()),
+            ));
         }
         Ok(())
     }

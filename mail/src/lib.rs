@@ -20,5 +20,11 @@ pub fn run(cli: &Cli) -> io::Result<()> {
         Some(path) => Box::new(BufWriter::new(File::create(path)?)),
         None => Box::new(io::stdout().lock()),
     };
-    Process::new(reader, writer, cli.attachments.clone(), cli.strip_attachments).run()
+    Process::new(
+        reader,
+        writer,
+        cli.attachments.clone(),
+        cli.strip_attachments,
+    )
+    .run()
 }

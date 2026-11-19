@@ -37,7 +37,7 @@ pub struct Process<R: Read, W: Write> {
     writer: W,
     attachments_dir: PathBuf,
     strip_attachments: bool,
-    seen_messages: HashSet<String>,
+    seen_messages: HashSet<[u8; 16]>,
 }
 
 impl<R: Read, W: Write> Process<R, W> {
@@ -73,13 +73,10 @@ impl<R: Read, W: Write> Process<R, W> {
     /// Emit every complete message in `input`; return the unconsumed tail.
     fn chunk(&mut self, input: &[u8]) -> io::Result<Vec<u8>> {
         let mut left = 0;
-        loop {
-            let Some(rel) = find_subslice(&input[left..], NEW_MESSAGE) else {
-                break;
-            };
-            // TS: index = indexOfNeedle(input, NEW_MESSAGE, left) + 1, so the
-            // slice ends just after the LF and the "From " line starts the
-            // next slice.
+        // TS: index = indexOfNeedle(input, NEW_MESSAGE, left) + 1, so the
+        // slice ends just after the LF and the "From " line starts the
+        // next slice.
+        while let Some(rel) = find_subslice(&input[left..], NEW_MESSAGE) {
             let index = left + rel + 1;
             self.message(&input[left..index])?;
             left = index;
@@ -115,15 +112,15 @@ impl<R: Read, W: Write> Process<R, W> {
             kept.push_str(header);
             kept.push('\n');
 
-            if key == "content-type" && header.to_lowercase().contains("multipart/") {
-                if let Some(v) = headers::param_value(header, "boundary").filter(|v| !v.is_empty())
-                {
-                    boundaries.push(v);
-                }
+            if key == "content-type"
+                && header.to_lowercase().contains("multipart/")
+                && let Some(v) = headers::param_value(header, "boundary").filter(|v| !v.is_empty())
+            {
+                boundaries.push(v);
             }
         }
 
-        let hash = base64::encode(&md5(kept.as_bytes()));
+        let hash = md5(kept.as_bytes());
         if !self.seen_messages.insert(hash) {
             return Ok(());
         }
@@ -156,7 +153,8 @@ impl<R: Read, W: Write> Process<R, W> {
         let headers = &input[start..header_end];
         let headers_text = String::from_utf8_lossy(headers);
 
-        let next = find_subslice(&input[header_end..], sep_lf.as_bytes()).map(|rel| header_end + rel);
+        let next =
+            find_subslice(&input[header_end..], sep_lf.as_bytes()).map(|rel| header_end + rel);
         let mut end = next;
         if next.is_none() {
             // TS searches for the closing "--" from index 0, not from start.
@@ -183,7 +181,7 @@ impl<R: Read, W: Write> Process<R, W> {
                 }
 
                 let media_type = value.split(';').next().unwrap_or("").trim();
-                ext = media_type.splitn(2, '/').nth(1).map(str::to_string);
+                ext = media_type.split_once('/').map(|(_, sub)| sub.to_string());
                 if KEEP_TYPES.iter().any(|t| media_type.starts_with(t)) {
                     self.writer.write_all(&input[start..end])?;
                     return self.body(&input[end..], boundaries);
@@ -212,7 +210,10 @@ impl<R: Read, W: Write> Process<R, W> {
         let encoded = String::from_utf8_lossy(&input[header_end..end])
             .replace(|c: char| c.is_whitespace(), "");
         let binary = base64::decode(&encoded).map_err(|e| {
-            Error::new(ErrorKind::InvalidData, format!("Invalid base64 attachment: {e}"))
+            Error::new(
+                ErrorKind::InvalidData,
+                format!("Invalid base64 attachment: {e}"),
+            )
         })?;
 
         let digest = md5(&binary);
@@ -239,11 +240,7 @@ mod tests {
 
     fn temp_dir() -> PathBuf {
         let n = COUNTER.fetch_add(1, Ordering::Relaxed);
-        let dir = std::env::temp_dir().join(format!(
-            "mail-test-{}-{}",
-            std::process::id(),
-            n
-        ));
+        let dir = std::env::temp_dir().join(format!("mail-test-{}-{}", std::process::id(), n));
         std::fs::create_dir_all(&dir).unwrap();
         dir
     }
