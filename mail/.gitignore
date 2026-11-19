@@ -1,6 +1,2 @@
-# vim
-*.sw?
-
-.DS_Store
-
 /data
+/target
