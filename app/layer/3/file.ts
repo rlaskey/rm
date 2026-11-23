@@ -26,16 +26,10 @@ const toAVIF = async (
   contentType: string | null,
 ): Promise<BACT> => {
   const proc = Bun.spawn(["magick", ...MAGICK_ARGS], {
-    stdin: "pipe",
+    stdin: bytes,
     stdout: "pipe",
     stderr: "ignore",
   } as const);
-
-  const stdin = proc.stdin as unknown as WritableStream<Uint8Array>;
-  const writer = stdin.getWriter();
-  await writer.write(bytes);
-  writer.releaseLock();
-  await stdin.close();
 
   const converted = new Uint8Array(
     await new Response(proc.stdout).arrayBuffer(),
