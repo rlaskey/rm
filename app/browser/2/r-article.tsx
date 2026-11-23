@@ -24,9 +24,7 @@ export const ReadArticle = () => {
           <ul>
             {references.map((r) => (
               <li key={r.id}>
-                <a href={"/r/r/" + r.id}>
-                  #{String(r.id).padStart(4, "0")}
-                </a>{" "}
+                <a href={"/r/r/" + r.id}>#{String(r.id).padStart(4, "0")}</a>{" "}
                 {r.name}
               </li>
             ))}

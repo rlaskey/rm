@@ -11,6 +11,6 @@ export const logout: Middleware = (ctx, _) => {
   ctx.state.session = undefined;
   ctx.res = new Response(null, {
     status: 302,
-    headers: { "Location": "/login" },
+    headers: { Location: "/login" },
   });
 };

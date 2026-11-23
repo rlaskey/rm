@@ -22,12 +22,17 @@ export const insertReference: Middleware = async (ctx, _) => {
     return;
   }
 
-  const src = db.prepare(
-    "INSERT INTO reference (" + Object.keys(spr.data).join(", ") +
-      ") VALUES (" +
-      Object.keys(spr.data).map((_) => "?").join(", ") +
-      ")",
-  ).run(...Object.values(spr.data));
+  const src = db
+    .prepare(
+      "INSERT INTO reference (" +
+        Object.keys(spr.data).join(", ") +
+        ") VALUES (" +
+        Object.keys(spr.data)
+          .map((_) => "?")
+          .join(", ") +
+        ")",
+    )
+    .run(...Object.values(spr.data));
   if (src.changes != 1) {
     ctx.res = new Response("INSERT failed.", { status: 500 });
     return;
@@ -52,11 +57,15 @@ export const updateReference: Middleware = async (ctx, _) => {
     return;
   }
 
-  const src = db.prepare(
-    "UPDATE reference SET " +
-      Object.keys(spr.data).map((e) => e + " = ?").join(", ") +
-      " WHERE id = ?",
-  ).run(...Object.values(spr.data), id);
+  const src = db
+    .prepare(
+      "UPDATE reference SET " +
+        Object.keys(spr.data)
+          .map((e) => e + " = ?")
+          .join(", ") +
+        " WHERE id = ?",
+    )
+    .run(...Object.values(spr.data), id);
   if (src.changes != 1) {
     ctx.res = new Response("UPDATE failed.", { status: 500 });
     return;

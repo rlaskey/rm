@@ -22,10 +22,17 @@ export const insertArticle: Middleware = async (ctx, _) => {
     return;
   }
 
-  const src = db.prepare(
-    "INSERT INTO article (" + Object.keys(spr.data).join(", ") + ") VALUES (" +
-      Object.keys(spr.data).map((_) => "?").join(", ") + ")",
-  ).run(...Object.values(spr.data));
+  const src = db
+    .prepare(
+      "INSERT INTO article (" +
+        Object.keys(spr.data).join(", ") +
+        ") VALUES (" +
+        Object.keys(spr.data)
+          .map((_) => "?")
+          .join(", ") +
+        ")",
+    )
+    .run(...Object.values(spr.data));
   if (src.changes != 1) {
     ctx.res = new Response("INSERT failed.", { status: 500 });
     return;
@@ -51,11 +58,15 @@ export const updateArticle: Middleware = async (ctx, _) => {
   }
 
   if (
-    db.prepare(
-      "UPDATE article SET " +
-        Object.keys(spr.data).map((k) => k + " = ?").join(", ") +
-        " WHERE id = ?",
-    ).run(...Object.values(spr.data), id).changes != 1
+    db
+      .prepare(
+        "UPDATE article SET " +
+          Object.keys(spr.data)
+            .map((k) => k + " = ?")
+            .join(", ") +
+          " WHERE id = ?",
+      )
+      .run(...Object.values(spr.data), id).changes != 1
   ) {
     ctx.res = new Response("UPDATE failed.", { status: 500 });
     return;

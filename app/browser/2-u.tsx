@@ -21,24 +21,29 @@ const Passkeys = () => {
       .then((options) =>
         navigator.credentials.create({
           publicKey: PublicKeyCredential.parseCreationOptionsFromJSON(options),
-        })
-      ).then((credential) => {
+        }),
+      )
+      .then((credential) => {
         if (!credential) throw new Error("Empty Credential.");
-        return (credential as PublicKeyCredential)
-          .toJSON() as RegistrationResponseJSON;
-      }).then((j) =>
+        return (
+          credential as PublicKeyCredential
+        ).toJSON() as RegistrationResponseJSON;
+      })
+      .then((j) =>
         fetch("/1/credentials/create/1", {
           method: "POST",
           body: JSON.stringify(j),
-        })
-      ).then(async (res1) => {
+        }),
+      )
+      .then(async (res1) => {
         if (!res1.ok) throw new Error(await res1.text());
         passkeys.value = [
           ...passkeys.value,
           cborDecode(await res1.bytes()) as string,
         ];
-      }).catch((e: Error) => {
-        const message = (e instanceof Error) ? e.message : e;
+      })
+      .catch((e: Error) => {
+        const message = e instanceof Error ? e.message : e;
         setError(String(message));
       });
   };
@@ -47,7 +52,9 @@ const Passkeys = () => {
     <>
       <h2>Passkeys</h2>
 
-      {passkeys.value.map((p) => <pre key={p}>{p}</pre>)}
+      {passkeys.value.map((p) => (
+        <pre key={p}>{p}</pre>
+      ))}
       {error && <p className="error">{error}</p>}
 
       <p>
@@ -86,15 +93,17 @@ const User = () => {
       return;
     }
 
-    fetch("/2/me", cborRequestInit({ name })).then(async (res) => {
-      if (!res.ok) throw new Error(await res.text() || "Save failed.");
+    fetch("/2/me", cborRequestInit({ name }))
+      .then(async (res) => {
+        if (!res.ok) throw new Error((await res.text()) || "Save failed.");
 
-      const d = cborDecode(await res.bytes()) as Map<string, string>;
-      me.value = { ...me.value, name: d.get("name") as string };
-      setStatus(statusState("Saved."));
-    }).catch((error: Error) =>
-      setStatus(statusState(String(error.message || error), "error"))
-    );
+        const d = cborDecode(await res.bytes()) as Map<string, string>;
+        me.value = { ...me.value, name: d.get("name") as string };
+        setStatus(statusState("Saved."));
+      })
+      .catch((error: Error) =>
+        setStatus(statusState(String(error.message || error), "error")),
+      );
   };
 
   if (!me.value) return;

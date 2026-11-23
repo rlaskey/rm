@@ -22,10 +22,7 @@ export const ReadIndex = () => {
 
       <hr />
 
-      <DraftArticles
-        prefix="/r/a/"
-        {...{ drafts, backDraft, location }}
-      />
+      <DraftArticles prefix="/r/a/" {...{ drafts, backDraft, location }} />
       <PublishedArticles
         prefix="/r/a/"
         {...{ published, backPublished, location }}

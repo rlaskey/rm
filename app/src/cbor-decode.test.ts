@@ -1,14 +1,17 @@
-import { assertEquals } from "@std/assert";
+import { expect, test } from "bun:test";
 
 import { cborDecode } from "./cbor-decode.ts";
 
-Deno.test("cborDecode(cosePublicKey)", () => {
-  assertEquals(
-    cborDecode(Uint8Array.fromBase64(
-      "pQECAyYgASFYIELcIOWWqzxEmIPqozLjy5LFHBB0GBGizXw2B136NIMcIlggJlEQ4VwQ5" +
-        "kmqUFxcPsiEbTkqUJRk-LHnQNRw2d-RLkQ=",
-      { alphabet: "base64url" },
-    )),
+test("cborDecode(cosePublicKey)", () => {
+  expect(
+    cborDecode(
+      Uint8Array.fromBase64(
+        "pQECAyYgASFYIELcIOWWqzxEmIPqozLjy5LFHBB0GBGizXw2B136NIMcIlggJlEQ4VwQ5" +
+          "kmqUFxcPsiEbTkqUJRk-LHnQNRw2d-RLkQ=",
+        { alphabet: "base64url" },
+      ),
+    ),
+  ).toEqual(
     new Map<number, number | Uint8Array>([
       [1, 2],
       [3, -7],
@@ -29,19 +32,20 @@ Deno.test("cborDecode(cosePublicKey)", () => {
   );
 });
 
-Deno.test("cborDecode(nestedMap)", () => {
-  assertEquals(
-    cborDecode(Uint8Array.fromHex("A26161F56162A0")),
-    new Map<string, boolean | Map<number, number>>([["a", true], [
-      "b",
-      new Map<number, number>(),
-    ]]),
+test("cborDecode(nestedMap)", () => {
+  expect(cborDecode(Uint8Array.fromHex("A26161F56162A0"))).toEqual(
+    new Map<string, boolean | Map<number, number>>([
+      ["a", true],
+      ["b", new Map<number, number>()],
+    ]),
   );
 });
 
-Deno.test("cborDecode(nestedArray)", () => {
-  assertEquals(
-    cborDecode(Uint8Array.fromHex("840102F783030481F6")),
-    [1, 2, undefined, [3, 4, [null]]],
-  );
+test("cborDecode(nestedArray)", () => {
+  expect(cborDecode(Uint8Array.fromHex("840102F783030481F6"))).toEqual([
+    1,
+    2,
+    undefined,
+    [3, 4, [null]],
+  ]);
 });

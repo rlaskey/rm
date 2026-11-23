@@ -6,32 +6,38 @@ import { db } from "../../src/sqlite.ts";
 
 export const articleReferenceDelete: Middleware = (ctx, _) => {
   ctx.res = cborResponse(
-    db.prepare(
-      "DELETE FROM article_reference WHERE article_id = ? AND reference_id = ?",
-    ).run(
-      ctx.url.searchParams.get("articleId"),
-      ctx.url.searchParams.get("referenceId"),
-    ),
+    db
+      .prepare(
+        "DELETE FROM article_reference WHERE article_id = ? AND reference_id = ?",
+      )
+      .run(
+        ctx.url.searchParams.get("articleId"),
+        ctx.url.searchParams.get("referenceId"),
+      ),
   );
 };
 
 export const articleReference: Middleware = async (ctx, _) => {
   const r = cborDecode(await ctx.req.bytes()) as Map<string, number>;
   ctx.res = cborResponse(
-    db.prepare(
-      "INSERT OR IGNORE INTO article_reference (article_id, reference_id) " +
-        "VALUES (?, ?)",
-    ).run(r.get("article_id")!, r.get("reference_id")!).lastInsertRowid,
+    db
+      .prepare(
+        "INSERT OR IGNORE INTO article_reference (article_id, reference_id) " +
+          "VALUES (?, ?)",
+      )
+      .run(r.get("article_id")!, r.get("reference_id")!).lastInsertRowid,
   );
 };
 
 export const referencePairDelete: Middleware = (ctx, _) => {
   const sorted = [...new Set(ctx.url.searchParams.getAll("id"))]
-    .map((id) => Number(id)).sort();
+    .map((id) => Number(id))
+    .sort();
   if (sorted.length !== 2) return;
 
   ctx.res = cborResponse(
-    db.prepare("DELETE FROM reference_pair WHERE a = ? AND b = ?")
+    db
+      .prepare("DELETE FROM reference_pair WHERE a = ? AND b = ?")
       .run(...sorted).changes,
   );
 };
@@ -43,15 +49,16 @@ export const referencePair: Middleware = async (ctx, _) => {
   if (sorted.length !== 2) return;
 
   ctx.res = cborResponse(
-    db.prepare(
-      "INSERT OR IGNORE INTO reference_pair (a, b) VALUES (?, ?)",
-    ).run(...sorted).lastInsertRowid,
+    db
+      .prepare("INSERT OR IGNORE INTO reference_pair (a, b) VALUES (?, ?)")
+      .run(...sorted).lastInsertRowid,
   );
 };
 
 export const articlePairDelete: Middleware = (ctx, _) => {
   const sorted = [...new Set(ctx.url.searchParams.getAll("id"))]
-    .map((id) => Number(id)).sort();
+    .map((id) => Number(id))
+    .sort();
   if (sorted.length !== 2) return;
 
   ctx.res = cborResponse(
@@ -66,8 +73,8 @@ export const articlePair: Middleware = async (ctx, _) => {
   if (sorted.length !== 2) return;
 
   ctx.res = cborResponse(
-    db.prepare(
-      "INSERT OR IGNORE INTO article_pair (a, b) VALUES (?, ?)",
-    ).run(...sorted).lastInsertRowid,
+    db
+      .prepare("INSERT OR IGNORE INTO article_pair (a, b) VALUES (?, ?)")
+      .run(...sorted).lastInsertRowid,
   );
 };

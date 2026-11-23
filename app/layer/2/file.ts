@@ -13,7 +13,10 @@ export const getBytes: Middleware = async (ctx, _) => {
     new GetObjectCommand({ Key: toKey(BigInt(id)) }),
   );
 
-  const headers = new Headers({ "Cache-Control": "max-age=3600" });
+  const headers = new Headers({
+    "Cache-Control": "max-age=3600",
+    "X-Content-Type-Options": "nosniff",
+  });
 
   const s3ContentType = fromS3.headers.get("content-type");
   if (s3ContentType) headers.set("Content-Type", s3ContentType);

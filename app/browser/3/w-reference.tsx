@@ -45,18 +45,20 @@ export const WriteReference = () => {
       fetch(
         "/3/reference/" + String(BigInt(reference.id as number | bigint)),
         cborRequestInit(sprI.data),
-      ).then(async (res) => {
-        if (!res.ok) throw new Error(await res.text() || "Save failed.");
-        const spr = mapToZodObject(
-          cborDecode(await res.bytes()) as SupportedMapsCBOR,
-          dbReference,
-        );
-        if (!spr.success) throw new Error(spr.error.message);
-        setReference(spr.data);
-        setStatus(statusState("Saved."));
-      }).catch((e: Error) => {
-        setStatus(statusState(String(e.message || e), "error"));
-      });
+      )
+        .then(async (res) => {
+          if (!res.ok) throw new Error((await res.text()) || "Save failed.");
+          const spr = mapToZodObject(
+            cborDecode(await res.bytes()) as SupportedMapsCBOR,
+            dbReference,
+          );
+          if (!spr.success) throw new Error(spr.error.message);
+          setReference(spr.data);
+          setStatus(statusState("Saved."));
+        })
+        .catch((e: Error) => {
+          setStatus(statusState(String(e.message || e), "error"));
+        });
     } else {
       const sprI = formElementsToZodObject(
         form.elements,
@@ -68,9 +70,8 @@ export const WriteReference = () => {
         .then(async (res) => {
           const d = cborDecode(await res.bytes()) as number | bigint;
           location.route("/w/r/" + d);
-        }).catch((e) =>
-          setStatus(statusState(String(e.message || e), "error"))
-        );
+        })
+        .catch((e) => setStatus(statusState(String(e.message || e), "error")));
     }
   };
 
@@ -82,12 +83,7 @@ export const WriteReference = () => {
       <form onSubmit={submit}>
         <label>
           Name
-          <input
-            type="text"
-            required
-            name="name"
-            value={reference?.name}
-          />
+          <input type="text" required name="name" value={reference?.name} />
         </label>
 
         <Status {...status} />

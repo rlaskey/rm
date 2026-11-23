@@ -1,4 +1,6 @@
-import { backup } from "node:sqlite";
+import { mkdtemp, readFile, rm } from "node:fs/promises";
+import { tmpdir } from "node:os";
+import { join } from "node:path";
 
 import { zeroPad } from "../../browser/src/dates.ts";
 
@@ -10,7 +12,7 @@ import { PutObjectCommand, s3 } from "../../src/s3.ts";
 const gz = async (path: string): Promise<Uint8Array> => {
   const stream = new CompressionStream("gzip");
   const writer = stream.writable.getWriter();
-  writer.write(await Deno.readFile(path));
+  writer.write(await readFile(path));
   writer.close();
 
   let done = false;
@@ -27,17 +29,30 @@ const gz = async (path: string): Promise<Uint8Array> => {
 };
 
 export const doBackup: Middleware = async (ctx, _) => {
-  const t = await Deno.makeTempFile();
-  backup(db, t);
+  // mkdtemp gives a 0700 directory, so the snapshot (session tokens included)
+  // is unreadable to other local users even though VACUUM INTO creates the
+  // file itself with default permissions. Removed even if the upload fails.
+  const dir = await mkdtemp(join(tmpdir(), "rm-backup-"));
+  const t = join(dir, "db.sqlite");
 
-  const now = new Date();
-  const Key = "00-db/" + now.getUTCFullYear() + "/" +
-    zeroPad(now.getUTCMonth() + 1) + "-" + zeroPad(now.getUTCDate()) +
-    ".sqlite.gz";
+  try {
+    db.run(`VACUUM INTO '${t}'`);
 
-  const Body = await gz(t);
-  await s3.send(new PutObjectCommand({ Key, Body }));
-  await Deno.remove(t);
+    const now = new Date();
+    const Key =
+      "00-db/" +
+      now.getUTCFullYear() +
+      "/" +
+      zeroPad(now.getUTCMonth() + 1) +
+      "-" +
+      zeroPad(now.getUTCDate()) +
+      ".sqlite.gz";
 
-  ctx.res = new Response(Key + " -- " + Body.byteLength);
+    const Body = await gz(t);
+    await s3.send(new PutObjectCommand({ Key, Body }));
+
+    ctx.res = new Response(Key + " -- " + Body.byteLength);
+  } finally {
+    await rm(dir, { recursive: true, force: true });
+  }
 };

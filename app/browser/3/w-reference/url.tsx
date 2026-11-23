@@ -13,13 +13,11 @@ import {
 } from "../../src/data.ts";
 import { Status, statusState } from "../../src/status.tsx";
 
-export const LabeledURLs = (
-  props: {
-    referenceId: bigint;
-    labeledURLs: (z.infer<typeof dbURL>)[];
-    setLabeledURLs: (value: (z.infer<typeof dbURL>)[]) => void;
-  },
-) => {
+export const LabeledURLs = (props: {
+  referenceId: bigint;
+  labeledURLs: z.infer<typeof dbURL>[];
+  setLabeledURLs: (value: z.infer<typeof dbURL>[]) => void;
+}) => {
   const [status, setStatus] = useState(statusState());
 
   const submit = (event: Event) => {
@@ -41,19 +39,21 @@ export const LabeledURLs = (
       ],
     ]);
 
-    fetch("/3/url", cborRequestInit(payload)).then(async (res) => {
-      if (!res.ok) throw new Error(await res.text() || "Save failed.");
-      props.setLabeledURLs(
-        (cborDecode(await res.bytes()) as SupportedMapsCBOR[]).map((x) => {
-          const spr = mapToZodObject(x, dbURL);
-          if (!spr.success) throw new Error(spr.error.message);
-          return spr.data;
-        }),
-      );
-      setStatus(statusState("Saved."));
-    }).catch((e: Error) => {
-      setStatus(statusState(String(e.message || e), "error"));
-    });
+    fetch("/3/url", cborRequestInit(payload))
+      .then(async (res) => {
+        if (!res.ok) throw new Error((await res.text()) || "Save failed.");
+        props.setLabeledURLs(
+          (cborDecode(await res.bytes()) as SupportedMapsCBOR[]).map((x) => {
+            const spr = mapToZodObject(x, dbURL);
+            if (!spr.success) throw new Error(spr.error.message);
+            return spr.data;
+          }),
+        );
+        setStatus(statusState("Saved."));
+      })
+      .catch((e: Error) => {
+        setStatus(statusState(String(e.message || e), "error"));
+      });
   };
 
   return (

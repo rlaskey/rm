@@ -26,16 +26,16 @@ export const create1: Middleware = async (ctx, _) => {
   const user = new Map() as User;
   if (ctx.state.session.data.get("futureUser")) {
     (ctx.state.session.data.get("futureUser") as User).forEach((v, k) =>
-      user.set(k, v)
+      user.set(k, v),
     );
   } else {
     if (!ctx.state.session.user_id) {
       ctx.res = new Response("User not found.", { status: 400 });
       return;
     }
-    const existingUser = db.prepare("SELECT * FROM user WHERE id = ?").get(
-      ctx.state.session.user_id,
-    );
+    const existingUser = db
+      .prepare("SELECT * FROM user WHERE id = ?")
+      .get(ctx.state.session.user_id);
     if (!existingUser) {
       ctx.state.session.user_id = null;
       ctx.res = new Response("User not found.", { status: 400 });
@@ -43,12 +43,12 @@ export const create1: Middleware = async (ctx, _) => {
     }
 
     Object.entries(existingUser).forEach((e) =>
-      user.set(e[0], e[1] as string | bigint)
+      user.set(e[0], e[1] as string | bigint),
     );
   }
 
-  const publicKeyCredentialJSON: RegistrationResponseJSON = await ctx.req
-    .json();
+  const publicKeyCredentialJSON: RegistrationResponseJSON =
+    await ctx.req.json();
   const response = publicKeyCredentialJSON.response;
   const clientData = decodeClientDataJSON(response.clientDataJSON);
 
@@ -69,20 +69,21 @@ export const create1: Middleware = async (ctx, _) => {
     user,
   );
 
-  if ((new URL(clientData.origin)).hostname !== options.rp.id) {
+  if (new URL(clientData.origin).hostname !== options.rp.id) {
     ctx.res = new Response("clientData.origin", { status: 400 });
     return;
   }
   // TODO: anything to do w/ crossOrigin or topOrigin
 
-  const authenticatorData = decodeAuthenticatorData(
-    response.authenticatorData,
-  );
+  const authenticatorData = decodeAuthenticatorData(response.authenticatorData);
   if (
-    authenticatorData.rpId !== (new Uint8Array(
-      await crypto.subtle
-        .digest("SHA-256", (new TextEncoder()).encode(options.rp.id)),
-    )).toBase64({ alphabet: "base64url" })
+    authenticatorData.rpId !==
+    new Uint8Array(
+      await crypto.subtle.digest(
+        "SHA-256",
+        new TextEncoder().encode(options.rp.id),
+      ),
+    ).toBase64({ alphabet: "base64url" })
   ) {
     ctx.res = new Response("authenticatorData.rpId", { status: 400 });
     return;
@@ -124,9 +125,9 @@ export const create1: Middleware = async (ctx, _) => {
 
   // Convert a FutureUser to a User.
   if (typeof user.get("id") === "string") {
-    const src = db.prepare("INSERT INTO user (name) VALUES (?)").run(
-      user.get("name") as string,
-    );
+    const src = db
+      .prepare("INSERT INTO user (name) VALUES (?)")
+      .run(user.get("name") as string);
     if (src.changes != 1) {
       ctx.res = new Response("Failed to save User.", { status: 400 });
       return;

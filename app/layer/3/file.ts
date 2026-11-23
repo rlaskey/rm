@@ -1,5 +1,3 @@
-import { crypto } from "@std/crypto";
-
 import { dbFile, mapToZodObject } from "../../browser/src/data.ts";
 
 import { cborDecode } from "../../src/cbor-decode.ts";
@@ -12,11 +10,14 @@ import { transaction } from "../../src/transaction.ts";
 import { getId } from "../../src/url.ts";
 
 // also: ["-colorspace", "RGB"]
-const magickToAVIF = new Deno.Command("magick", {
-  args: ["-", "-resize", ">2048x>2048", "+profile", "!icc,*", "avif:-"],
-  stdin: "piped",
-  stdout: "piped",
-});
+const MAGICK_ARGS = [
+  "-",
+  "-resize",
+  ">2048x>2048",
+  "+profile",
+  "!icc,*",
+  "avif:-",
+];
 
 type BACT = [Uint8Array<ArrayBuffer>, string | null];
 
@@ -24,17 +25,22 @@ const toAVIF = async (
   bytes: Uint8Array<ArrayBuffer>,
   contentType: string | null,
 ): Promise<BACT> => {
-  const spawnToAVIF = magickToAVIF.spawn();
-  spawnToAVIF.ref();
+  const proc = Bun.spawn(["magick", ...MAGICK_ARGS], {
+    stdin: "pipe",
+    stdout: "pipe",
+    stderr: "ignore",
+  } as const);
 
-  const writer = spawnToAVIF.stdin.getWriter();
+  const stdin = proc.stdin as unknown as WritableStream<Uint8Array>;
+  const writer = stdin.getWriter();
   await writer.write(bytes);
   writer.releaseLock();
-  await spawnToAVIF.stdin.close();
-  spawnToAVIF.unref();
+  await stdin.close();
 
-  const converted = await spawnToAVIF.stdout.bytes();
-  if ((await spawnToAVIF.status).success) return [converted, "image/avif"];
+  const converted = new Uint8Array(
+    await new Response(proc.stdout).arrayBuffer(),
+  );
+  if ((await proc.exited) === 0) return [converted, "image/avif"];
   return [bytes, contentType];
 };
 
@@ -57,10 +63,12 @@ export const insertFile: Middleware = async (ctx, _) => {
   try {
     await transaction(db, async (innerDB) => {
       const [bytes, contentType] = await process(reqBytes, reqContentType);
-      const md5 = new Uint8Array(await crypto.subtle.digest("MD5", bytes));
-      lastInsertRowId = innerDB.prepare(
-        "INSERT INTO file (md5, content_type) VALUES (?, ?)",
-      ).run(md5, contentType).lastInsertRowid;
+      const sha256 = new Uint8Array(
+        await crypto.subtle.digest("SHA-256", bytes),
+      );
+      lastInsertRowId = innerDB
+        .prepare("INSERT INTO file (sha256, content_type) VALUES (?, ?)")
+        .run(sha256, contentType).lastInsertRowid;
       await s3.send(
         new PutObjectCommand({
           Key: toKey(BigInt(lastInsertRowId)),
@@ -72,9 +80,10 @@ export const insertFile: Middleware = async (ctx, _) => {
     let error = e;
     while (error instanceof SuppressedError) error = error.suppressed;
 
-    let message = (error instanceof Error)
-      ? String(error.message)
-      : "Unknown error w/ UPLOAD.";
+    let message =
+      error instanceof Error
+        ? String(error.message)
+        : "Unknown error w/ UPLOAD.";
     if (message.startsWith("UNIQUE constraint")) {
       message = "file already uploaded.";
     }
@@ -94,10 +103,12 @@ export const updateFileBytes: Middleware = async (ctx, _) => {
 
   try {
     await transaction(db, async (innerDB) => {
-      const md5 = new Uint8Array(await crypto.subtle.digest("MD5", reqBytes));
-      innerDB.prepare(
-        "UPDATE file SET md5 = ?, content_type = ? WHERE id = ?",
-      ).run(md5, reqContentType, id);
+      const sha256 = new Uint8Array(
+        await crypto.subtle.digest("SHA-256", reqBytes),
+      );
+      innerDB
+        .prepare("UPDATE file SET sha256 = ?, content_type = ? WHERE id = ?")
+        .run(sha256, reqContentType, id);
       await s3.send(
         new PutObjectCommand({ Key: toKey(BigInt(id)), Body: reqBytes }),
       );
@@ -106,9 +117,10 @@ export const updateFileBytes: Middleware = async (ctx, _) => {
     let error = e;
     while (error instanceof SuppressedError) error = error.suppressed;
 
-    let message = (error instanceof Error)
-      ? String(error.message)
-      : "Unknown error w/ UPLOAD.";
+    let message =
+      error instanceof Error
+        ? String(error.message)
+        : "Unknown error w/ UPLOAD.";
     if (message.startsWith("UNIQUE constraint")) {
       message = "file already uploaded.";
     }
@@ -136,11 +148,15 @@ export const updateFileMeta: Middleware = async (ctx, _) => {
   }
 
   if (
-    db.prepare(
-      "UPDATE file SET " +
-        Object.keys(spr.data).map((k) => k + " = ?").join(", ") +
-        " WHERE id = ?",
-    ).run(...Object.values(spr.data), id).changes !== 1
+    db
+      .prepare(
+        "UPDATE file SET " +
+          Object.keys(spr.data)
+            .map((k) => k + " = ?")
+            .join(", ") +
+          " WHERE id = ?",
+      )
+      .run(...Object.values(spr.data), id).changes !== 1
   ) {
     ctx.res = new Response("UPDATE failed.", { status: 500 });
     return;

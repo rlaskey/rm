@@ -19,47 +19,47 @@ export const DisplayFile = (props: z.infer<typeof dbFile>) => {
     }
   };
 
-  return props.id && (
-    <>
-      <h1>
-        File{props.id && ": " + String(props.id).padStart(4, "0")}
-        {props.title && " -- " + props.title}
-      </h1>
+  return (
+    props.id && (
+      <>
+        <h1>
+          File{props.id && ": " + String(props.id).padStart(4, "0")}
+          {props.title && " -- " + props.title}
+        </h1>
 
-      <p>
-        {(props.content_type as string)?.startsWith("image/")
-          ? (
+        <p>
+          {(props.content_type as string)?.startsWith("image/") ? (
             <img
               className="pointer"
               src={"/2/bytes/" + props.id}
               onClick={imageCycle}
             />
-          )
-          : (props.content_type as string)?.startsWith("audio/")
-          ? <audio controls src={"/2/bytes/" + props.id}></audio>
-          : (props.content_type as string)?.startsWith("video/")
-          ? <video controls src={"/2/bytes/" + props.id}></video>
-          : <a href={"/2/bytes/" + props.id}>Download</a>}
-      </p>
-    </>
+          ) : (props.content_type as string)?.startsWith("audio/") ? (
+            <audio controls src={"/2/bytes/" + props.id}></audio>
+          ) : (props.content_type as string)?.startsWith("video/") ? (
+            <video controls src={"/2/bytes/" + props.id}></video>
+          ) : (
+            <a href={"/2/bytes/" + props.id}>Download</a>
+          )}
+        </p>
+      </>
+    )
   );
 };
 
-export const Files = (
-  props: {
-    prefix: string;
-    files: (z.infer<typeof dbFile>)[];
-    backFile: bigint | undefined;
-    location: LocationHook;
-  },
-) => {
+export const Files = (props: {
+  prefix: string;
+  files: z.infer<typeof dbFile>[];
+  backFile: bigint | undefined;
+  location: LocationHook;
+}) => {
   if (!props.files.length) return;
 
   const goBack = () => {
     const q = { ...props.location.query };
     q["f"] = String(props.backFile);
     props.location.route(
-      props.location.path + "?" + (new URLSearchParams(q)).toString(),
+      props.location.path + "?" + new URLSearchParams(q).toString(),
     );
   };
 
@@ -67,7 +67,7 @@ export const Files = (
     const q = { ...props.location.query };
     q["f"] = String(props.files[props.files.length - 1].id);
     props.location.route(
-      props.location.path + "?" + (new URLSearchParams(q)).toString(),
+      props.location.path + "?" + new URLSearchParams(q).toString(),
     );
   };
 
@@ -77,9 +77,7 @@ export const Files = (
       <menu>
         {props.files.slice(0, SELECT_LIMIT).map((f) => (
           <li key={f.id}>
-            <a href={props.prefix + f.id}>
-              #{String(f.id).padStart(4, "0")}
-            </a>{" "}
+            <a href={props.prefix + f.id}>#{String(f.id).padStart(4, "0")}</a>{" "}
             {f.content_type && " -- " + f.content_type}
             {f.title && " -- " + f.title}
           </li>
@@ -87,10 +85,14 @@ export const Files = (
       </menu>
       <p>
         {!!props.backFile && (
-          <button type="button" onClick={goBack}>Newer</button>
+          <button type="button" onClick={goBack}>
+            Newer
+          </button>
         )}
         {props.files.length > SELECT_LIMIT && (
-          <button type="button" onClick={goForth}>Older</button>
+          <button type="button" onClick={goForth}>
+            Older
+          </button>
         )}
       </p>
     </>

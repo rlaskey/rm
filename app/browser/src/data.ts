@@ -11,7 +11,7 @@ export const dbArticle = z.object({
 
 export const dbFile = z.object({
   id: z.coerce.bigint(),
-  md5: z.instanceof(Uint8Array),
+  sha256: z.instanceof(Uint8Array),
   content_type: z.string().nullable(),
   title: z.string().nullable(),
 });
@@ -32,7 +32,7 @@ export const mapToZodObject = <T extends z.ZodObject>(
   schema: T,
 ) => {
   const record: Record<string, unknown> = {};
-  Object.keys(schema.shape).forEach((c) => record[c] = input.get(c));
+  Object.keys(schema.shape).forEach((c) => (record[c] = input.get(c)));
   return schema.safeParse(record);
 };
 
@@ -51,7 +51,7 @@ export const formElementsToZodObject = <T extends z.ZodObject>(
     } else if (schema.shape[c].isNullable() && !element.value) {
       record[c] = null;
     } else if (schema.shape[c].meta()?.["epochSeconds"] === true) {
-      record[c] = BigInt((new Date(element.value)).getTime() / 1000);
+      record[c] = BigInt(new Date(element.value).getTime() / 1000);
     } else {
       record[c] = element.value;
     }

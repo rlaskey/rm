@@ -13,49 +13,59 @@ const Layer1 = () => {
   const yay = () => globalThis.location.replace("/r");
 
   const get = async () => {
-    navigator.credentials.get({
-      publicKey: PublicKeyCredential.parseRequestOptionsFromJSON(
-        await (await fetch("/1/credentials/get/0")).json(),
-      ),
-    }).then((res0: Credential | null) =>
-      fetch("/1/credentials/get/1", {
-        method: "POST",
-        body: JSON.stringify(res0),
+    navigator.credentials
+      .get({
+        publicKey: PublicKeyCredential.parseRequestOptionsFromJSON(
+          await (await fetch("/1/credentials/get/0")).json(),
+        ),
       })
-    ).then(async (res1) => {
-      if (res1.ok) yay();
-      else throw new Error(await res1.text());
-    }).catch((e: Error) => setGetError(String(e.message || e)))
+      .then((res0: Credential | null) =>
+        fetch("/1/credentials/get/1", {
+          method: "POST",
+          body: JSON.stringify(res0),
+        }),
+      )
+      .then(async (res1) => {
+        if (res1.ok) yay();
+        else throw new Error(await res1.text());
+      })
+      .catch((e: Error) => setGetError(String(e.message || e)))
       .finally(() => setAttempted(true));
   };
 
   const create = (event: Event) => {
     event.preventDefault();
     const form = event.currentTarget as HTMLFormElement;
-    const name: string =
-      (form.elements.namedItem("name") as HTMLInputElement).value;
+    const name: string = (form.elements.namedItem("name") as HTMLInputElement)
+      .value;
 
     fetch("/1/credentials/create/0", {
       method: "POST",
       body: JSON.stringify({ name }),
-    }).then(async (res0) => await res0.json())
+    })
+      .then(async (res0) => await res0.json())
       .then((options) =>
         navigator.credentials.create({
           publicKey: PublicKeyCredential.parseCreationOptionsFromJSON(options),
-        })
-      ).then((credential) => {
+        }),
+      )
+      .then((credential) => {
         if (!credential) throw new Error("Empty Credential.");
-        return (credential as PublicKeyCredential)
-          .toJSON() as RegistrationResponseJSON;
-      }).then((j) =>
+        return (
+          credential as PublicKeyCredential
+        ).toJSON() as RegistrationResponseJSON;
+      })
+      .then((j) =>
         fetch("/1/credentials/create/1", {
           method: "POST",
           body: JSON.stringify(j),
-        })
-      ).then(async (res1) => {
+        }),
+      )
+      .then(async (res1) => {
         if (res1.ok) yay();
         else throw new Error(await res1.text());
-      }).catch((e: Error) => setCreateError(String(e.message || e)))
+      })
+      .catch((e: Error) => setCreateError(String(e.message || e)))
       .finally(() => setAttempted(true));
   };
 
@@ -65,12 +75,11 @@ const Layer1 = () => {
         <nav>
           <menu className="inline">
             <li aria-hidden="true">👋</li>
-            {attempted &&
-              (
-                <li>
-                  <a href="/logout">Logout</a>.
-                </li>
-              )}
+            {attempted && (
+              <li>
+                <a href="/logout">Logout</a>.
+              </li>
+            )}
           </menu>
         </nav>
       </header>
@@ -78,9 +87,8 @@ const Layer1 = () => {
       <h2>?!</h2>
 
       <p>
-        <a href="https://en.wikipedia.org/wiki/WebAuthn">Passkeys</a>{" "}
-        are good for you. If you've never set one up, now is a great time to
-        start.
+        <a href="https://en.wikipedia.org/wiki/WebAuthn">Passkeys</a> are good
+        for you. If you've never set one up, now is a great time to start.
       </p>
 
       <hr />
@@ -111,9 +119,7 @@ const Layer1 = () => {
           <input name="name" value="LARRY" required />
         </label>
         <p>
-          <button type="submit">
-            Register
-          </button>
+          <button type="submit">Register</button>
         </p>
       </form>
 

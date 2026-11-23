@@ -5,21 +5,19 @@ import { type LocationHook } from "preact-iso/router";
 import { dbReference } from "./data.ts";
 import { SELECT_LIMIT } from "./site.ts";
 
-export const References = (
-  props: {
-    prefix: string;
-    references: (z.infer<typeof dbReference>)[];
-    backReference: bigint | undefined;
-    location: LocationHook;
-  },
-) => {
+export const References = (props: {
+  prefix: string;
+  references: z.infer<typeof dbReference>[];
+  backReference: bigint | undefined;
+  location: LocationHook;
+}) => {
   if (!props.references.length) return;
 
   const goBack = () => {
     const q = { ...props.location.query };
     q["r"] = String(props.backReference);
     props.location.route(
-      props.location.path + "?" + (new URLSearchParams(q)).toString(),
+      props.location.path + "?" + new URLSearchParams(q).toString(),
     );
   };
 
@@ -27,7 +25,7 @@ export const References = (
     const q = { ...props.location.query };
     q["r"] = String(props.references[props.references.length - 1].id);
     props.location.route(
-      props.location.path + "?" + (new URLSearchParams(q)).toString(),
+      props.location.path + "?" + new URLSearchParams(q).toString(),
     );
   };
 
@@ -37,19 +35,21 @@ export const References = (
       <menu>
         {props.references.slice(0, SELECT_LIMIT).map((r) => (
           <li key={r.id}>
-            <a href={props.prefix + r.id}>
-              #{String(r.id).padStart(4, "0")}
-            </a>{" "}
+            <a href={props.prefix + r.id}>#{String(r.id).padStart(4, "0")}</a>{" "}
             {r.name}
           </li>
         ))}
       </menu>
       <p>
         {!!props.backReference && (
-          <button type="button" onClick={goBack}>Newer</button>
+          <button type="button" onClick={goBack}>
+            Newer
+          </button>
         )}
         {props.references.length > SELECT_LIMIT && (
-          <button type="button" onClick={goForth}>Older</button>
+          <button type="button" onClick={goForth}>
+            Older
+          </button>
         )}
       </p>
     </>

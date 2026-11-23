@@ -10,20 +10,18 @@ import { cborDecode } from "../../src/cbor-decode.ts";
 import { dbArticle, dbFile, dbReference, mapToZodObject } from "./data.ts";
 
 export const useIndex = () => {
-  const [files, setFiles] = useState<(z.infer<typeof dbFile>)[]>([]);
+  const [files, setFiles] = useState<z.infer<typeof dbFile>[]>([]);
   const [backFile, setBackFile] = useState<bigint | undefined>();
 
-  const [drafts, setDrafts] = useState<(z.infer<typeof dbArticle>)[]>([]);
+  const [drafts, setDrafts] = useState<z.infer<typeof dbArticle>[]>([]);
   const [backDraft, setBackDraft] = useState(0n);
 
-  const [published, setPublished] = useState<(z.infer<typeof dbArticle>)[]>(
-    [],
-  );
+  const [published, setPublished] = useState<z.infer<typeof dbArticle>[]>([]);
   const [backPublished, setBackPublished] = useState<
     [bigint, bigint] | undefined
   >();
 
-  const [references, setReferences] = useState<(z.infer<typeof dbReference>)[]>(
+  const [references, setReferences] = useState<z.infer<typeof dbReference>[]>(
     [],
   );
   const [backReference, setBackReference] = useState<bigint | undefined>();

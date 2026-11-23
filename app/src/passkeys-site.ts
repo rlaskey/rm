@@ -5,7 +5,8 @@ import { db } from "./sqlite.ts";
 import { User } from "./user.ts";
 
 export const insertPasskey = (passkey: Passkey) =>
-  db.prepare("INSERT INTO passkey VALUES (?, ?, ?, ?)")
+  db
+    .prepare("INSERT INTO passkey VALUES (?, ?, ?, ?)")
     .run(passkey.id, passkey.alg, passkey.public_key, passkey.user_id).changes;
 
 export const deletePasskey = (id: Base64URLString) =>

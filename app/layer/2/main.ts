@@ -19,7 +19,7 @@ const block: Middleware = async (ctx, next) => {
 
   ctx.res = new Response(null, {
     status: 302,
-    headers: { "Location": "/login" },
+    headers: { Location: "/login" },
   });
 };
 
@@ -30,7 +30,7 @@ const router: Middleware = async (ctx, next) => {
     if (ctx.url.pathname === "/") {
       ctx.res = new Response(null, {
         status: 302,
-        headers: { "Location": "/u" },
+        headers: { Location: "/u" },
       });
       return;
     }

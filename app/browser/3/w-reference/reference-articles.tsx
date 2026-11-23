@@ -10,13 +10,11 @@ import { cborDecode } from "../../../src/cbor-decode.ts";
 import { dbArticle, mapToZodObject } from "../../src/data.ts";
 import { ArticleA } from "../../src/article.tsx";
 
-export const ReferenceArticles = (
-  props: {
-    referenceId: bigint;
-    articles: z.infer<typeof dbArticle>[];
-    setArticles: (value: z.infer<typeof dbArticle>[]) => void;
-  },
-) => {
+export const ReferenceArticles = (props: {
+  referenceId: bigint;
+  articles: z.infer<typeof dbArticle>[];
+  setArticles: (value: z.infer<typeof dbArticle>[]) => void;
+}) => {
   const [found, setFound] = useState<z.infer<typeof dbArticle>[]>([]);
 
   const unlink = (articleId: bigint) => () =>
@@ -24,7 +22,7 @@ export const ReferenceArticles = (
       `/3/articleReference?articleId=${articleId}&referenceId=${props.referenceId}`,
       { method: "DELETE" },
     ).then(() =>
-      props.setArticles(props.articles.filter((a) => a.id !== articleId))
+      props.setArticles(props.articles.filter((a) => a.id !== articleId)),
     );
 
   const link = (article: z.infer<typeof dbArticle>) => () =>
@@ -42,24 +40,25 @@ export const ReferenceArticles = (
   const search = (event: Event) => {
     event.preventDefault();
 
-    const q = ((event.currentTarget as HTMLFormElement).elements.namedItem(
-      "search",
-    ) as HTMLInputElement).value;
+    const q = (
+      (event.currentTarget as HTMLFormElement).elements.namedItem(
+        "search",
+      ) as HTMLInputElement
+    ).value;
     if (!q) return;
 
     fetch(
       "/2/q/a",
       cborRequestInit({ q, omit: props.articles.map((s) => s.id) }),
-    )
-      .then(async (res) =>
-        setFound(
-          (cborDecode(await res.bytes()) as SupportedMapsCBOR[]).map((a) => {
-            const spr = mapToZodObject(a, dbArticle);
-            if (!spr.success) throw new Error(spr.error.message);
-            return spr.data;
-          }),
-        )
-      );
+    ).then(async (res) =>
+      setFound(
+        (cborDecode(await res.bytes()) as SupportedMapsCBOR[]).map((a) => {
+          const spr = mapToZodObject(a, dbArticle);
+          if (!spr.success) throw new Error(spr.error.message);
+          return spr.data;
+        }),
+      ),
+    );
   };
 
   return (
@@ -89,7 +88,9 @@ export const ReferenceArticles = (
 
         {found.map((a) => (
           <p key={a.id}>
-            <button type="button" onClick={link(a)}>Link</button>
+            <button type="button" onClick={link(a)}>
+              Link
+            </button>
             <ArticleA prefix="/w/a/" a={a} />
           </p>
         ))}

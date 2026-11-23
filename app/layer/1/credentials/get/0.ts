@@ -1,16 +1,16 @@
 import { type Middleware } from "../../../../src/framework.ts";
 
 import { createChallenge } from "../../../../src/passkeys.ts";
-import {
-  publicKeyCredentialRequestOptionsJSON,
-} from "../../../../src/passkeys-site.ts";
+import { publicKeyCredentialRequestOptionsJSON } from "../../../../src/passkeys-site.ts";
 import { blankSession } from "../../../../src/session.ts";
 
 export const get0: Middleware = (ctx, _) => {
-  if (!ctx.state.session) ctx.state.session = blankSession(ctx.req.headers);
+  if (!ctx.state.session) ctx.state.session = blankSession();
   ctx.state.session.data.set("challenge", createChallenge());
 
-  ctx.res = Response.json(publicKeyCredentialRequestOptionsJSON(
-    ctx.state.session.data.get("challenge") as string,
-  ));
+  ctx.res = Response.json(
+    publicKeyCredentialRequestOptionsJSON(
+      ctx.state.session.data.get("challenge") as string,
+    ),
+  );
 };

@@ -56,9 +56,7 @@ const decodeUint = (
 ): [number | bigint, number] => {
   const aI = additionalInformation(uint8Array, start);
   if (aI[0] === "31") {
-    throw new Error(
-      "Unsupported: Indefinite-length unsigned integer.",
-    );
+    throw new Error("Unsupported: Indefinite-length unsigned integer.");
   }
 
   return [aI[0], aI[1]];
@@ -70,9 +68,7 @@ const decodeNegativeInt = (
 ): [number | bigint, number] => {
   const aI = additionalInformation(uint8Array, start);
   if (aI[0] === "31") {
-    throw new Error(
-      "Unsupported: Indefinite-length negative integer.",
-    );
+    throw new Error("Unsupported: Indefinite-length negative integer.");
   }
 
   if (typeof aI[0] === "bigint") {
@@ -88,9 +84,7 @@ const decodeByteString = (
 ): [Uint8Array, number] => {
   const aI = additionalInformation(uint8Array, start);
   if (aI[0] === "31") {
-    throw new Error(
-      "Not yet supported: Indefinite-length Byte strings.",
-    );
+    throw new Error("Not yet supported: Indefinite-length Byte strings.");
   }
 
   if (typeof aI[0] === "bigint") {
@@ -113,19 +107,15 @@ const decodeTextString = (
 ): [string, number] => {
   const aI = additionalInformation(uint8Array, start);
   if (aI[0] === "31") {
-    throw new Error(
-      "Not yet supported: Indefinite-length Text strings.",
-    );
+    throw new Error("Not yet supported: Indefinite-length Text strings.");
   }
 
   if (typeof aI[0] === "bigint") {
-    throw new Error(
-      "Not yet supported: bigint length Text strings.",
-    );
+    throw new Error("Not yet supported: bigint length Text strings.");
   }
 
   return [
-    (new TextDecoder()).decode(uint8Array.subarray(aI[1], aI[1] + aI[0])),
+    new TextDecoder().decode(uint8Array.subarray(aI[1], aI[1] + aI[0])),
     aI[1] + aI[0],
   ];
 };
@@ -136,9 +126,7 @@ const decodeArray = (
 ): [SupportedArraysCBOR, number] => {
   const aI = additionalInformation(uint8Array, start);
   if (typeof aI[0] === "bigint") {
-    throw new Error(
-      "Not yet supported: bigint length of an Array.",
-    );
+    throw new Error("Not yet supported: bigint length of an Array.");
   }
   if (aI[0] === "31") {
     throw new Error("Not yet supported: Indefinite-length Arrays.");
@@ -161,9 +149,7 @@ const decodeMap = (
 ): [SupportedMapsCBOR, number] => {
   const aI = additionalInformation(uint8Array, start);
   if (typeof aI[0] === "bigint") {
-    throw new Error(
-      "Not yet supported: bigint length of a Map.",
-    );
+    throw new Error("Not yet supported: bigint length of a Map.");
   }
   if (aI[0] === "31") {
     throw new Error("Not yet supported: Indefinite-length Maps.");

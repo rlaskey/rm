@@ -24,11 +24,11 @@ export const get1: Middleware = async (ctx, _) => {
     return;
   }
 
-  const publicKeyCredentialJSON: AuthenticationResponseJSON = await ctx.req
-    .json();
-  const passkey = db.prepare("SELECT * FROM passkey WHERE id = ?").get(
-    publicKeyCredentialJSON.id,
-  ) as Passkey | undefined;
+  const publicKeyCredentialJSON: AuthenticationResponseJSON =
+    await ctx.req.json();
+  const passkey = db
+    .prepare("SELECT * FROM passkey WHERE id = ?")
+    .get(publicKeyCredentialJSON.id) as Passkey | undefined;
   if (!passkey) {
     ctx.res = new Response("Passkey not found.", { status: 400 });
     return;
@@ -45,20 +45,20 @@ export const get1: Middleware = async (ctx, _) => {
   }
 
   if (
-    !await algorithm.verify(
+    !(await algorithm.verify(
       passkey.public_key,
       publicKeyCredentialJSON.response.signature,
       publicKeyCredentialJSON.response.authenticatorData,
       publicKeyCredentialJSON.response.clientDataJSON,
-    )
+    ))
   ) {
     ctx.res = new Response("Verification failed.", { status: 400 });
     return;
   }
 
-  const user = db.prepare("SELECT * FROM user WHERE id = ?").get(
-    passkey.user_id,
-  ) as object | undefined;
+  const user = db
+    .prepare("SELECT * FROM user WHERE id = ?")
+    .get(passkey.user_id) as object | undefined;
   if (!user) {
     deletePasskey(publicKeyCredentialJSON.id);
     ctx.res = new Response(
@@ -85,7 +85,7 @@ export const get1: Middleware = async (ctx, _) => {
     ctx.state.session.data.get("challenge") as string,
   );
 
-  if ((new URL(C.origin)).hostname !== options.rpId) {
+  if (new URL(C.origin).hostname !== options.rpId) {
     ctx.res = new Response("clientData.origin", { status: 400 });
     return;
   }
@@ -96,12 +96,13 @@ export const get1: Middleware = async (ctx, _) => {
   );
 
   if (
-    authenticatorData.rpId !== (new Uint8Array(
+    authenticatorData.rpId !==
+    new Uint8Array(
       await crypto.subtle.digest(
         "SHA-256",
-        (new TextEncoder()).encode(options.rpId),
+        new TextEncoder().encode(options.rpId),
       ),
-    )).toBase64({ alphabet: "base64url" })
+    ).toBase64({ alphabet: "base64url" })
   ) {
     ctx.res = new Response("authenticatorData.rpId", { status: 400 });
     return;

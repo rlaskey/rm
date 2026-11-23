@@ -1,8 +1,14 @@
-import { DatabaseSync } from "node:sqlite";
+import { Database, Statement } from "bun:sqlite";
 
-const path: string = Deno.env.get("SQLITE_PATH") ??
-  Deno.env.get("HOME") + "/rm.sqlite";
+const path: string = process.env.SQLITE_PATH ?? process.env.HOME + "/rm.sqlite";
 
-export const db = new DatabaseSync(path);
-db.exec("PRAGMA foreign_keys = ON");
-db.exec("PRAGMA journal_mode = WAL");
+// bun-types types Statement results as `unknown` unless a row type is given
+// at every call site; keep the loose row typing the code was written against.
+type AnyStatement = Statement<any, any[]>;
+
+export const db: Omit<Database, "prepare"> & {
+  prepare(sql: string, params?: unknown): AnyStatement;
+} = new Database(path) as never;
+
+db.run("PRAGMA foreign_keys = ON");
+db.run("PRAGMA journal_mode = WAL");

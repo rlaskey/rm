@@ -17,11 +17,11 @@ const save = (
 ): string | undefined => {
   if (record.id && record.id === originalId) {
     if (
-      db.prepare("UPDATE url SET label = ? WHERE id = ?").run(
-        record.label || null,
-        originalId,
-      ).changes != 1
-    ) return "UPDATE failed.";
+      db
+        .prepare("UPDATE url SET label = ? WHERE id = ?")
+        .run(record.label || null, originalId).changes != 1
+    )
+      return "UPDATE failed.";
 
     return;
   }
@@ -29,12 +29,19 @@ const save = (
   if (record.id && record.id !== originalId) {
     try {
       if (
-        db.prepare(
-          "INSERT INTO url (" + Object.keys(record).join(", ") +
-            ") VALUES (" +
-            Object.keys(record).map((_) => "?").join(", ") + ")",
-        ).run(...Object.values(record)).changes != 1
-      ) return "INSERT failed.";
+        db
+          .prepare(
+            "INSERT INTO url (" +
+              Object.keys(record).join(", ") +
+              ") VALUES (" +
+              Object.keys(record)
+                .map((_) => "?")
+                .join(", ") +
+              ")",
+          )
+          .run(...Object.values(record)).changes != 1
+      )
+        return "INSERT failed.";
     } catch (error) {
       let e = error;
       while (e instanceof SuppressedError) e = e.suppressed;
@@ -45,9 +52,8 @@ const save = (
   }
 
   if (originalId && record.id !== originalId) {
-    if (
-      db.prepare("DELETE FROM url WHERE id = ?").run(originalId).changes != 1
-    ) return "DELETE failed.";
+    if (db.prepare("DELETE FROM url WHERE id = ?").run(originalId).changes != 1)
+      return "DELETE failed.";
   }
 };
 
@@ -71,8 +77,8 @@ export const postURL: Middleware = async (ctx, _) => {
   }
 
   ctx.res = cborResponse(
-    db.prepare("SELECT * FROM url WHERE reference_id = ?").all(
-      spr.data.reference_id,
-    ),
+    db
+      .prepare("SELECT * FROM url WHERE reference_id = ?")
+      .all(spr.data.reference_id),
   );
 };

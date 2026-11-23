@@ -9,21 +9,18 @@ import { cborDecode } from "../../../src/cbor-decode.ts";
 
 import { dbReference, mapToZodObject } from "../../src/data.ts";
 
-export const PairReferences = (
-  props: {
-    referenceId: bigint;
-    references: z.infer<typeof dbReference>[];
-    setReferences: (value: (z.infer<typeof dbReference>)[]) => void;
-  },
-) => {
-  const [found, setFound] = useState<(z.infer<typeof dbReference>)[]>([]);
+export const PairReferences = (props: {
+  referenceId: bigint;
+  references: z.infer<typeof dbReference>[];
+  setReferences: (value: z.infer<typeof dbReference>[]) => void;
+}) => {
+  const [found, setFound] = useState<z.infer<typeof dbReference>[]>([]);
 
   const unpair = (referenceId: bigint) => () =>
-    fetch(
-      `/3/referencePair?id=${referenceId}&id=${props.referenceId}`,
-      { method: "DELETE" },
-    ).then(() =>
-      props.setReferences(props.references.filter((r) => r.id !== referenceId))
+    fetch(`/3/referencePair?id=${referenceId}&id=${props.referenceId}`, {
+      method: "DELETE",
+    }).then(() =>
+      props.setReferences(props.references.filter((r) => r.id !== referenceId)),
     );
 
   const pair = (reference: z.infer<typeof dbReference>) => () =>
@@ -38,9 +35,11 @@ export const PairReferences = (
   const search = (event: Event) => {
     event.preventDefault();
 
-    const q = ((event.currentTarget as HTMLFormElement).elements.namedItem(
-      "search",
-    ) as HTMLInputElement).value;
+    const q = (
+      (event.currentTarget as HTMLFormElement).elements.namedItem(
+        "search",
+      ) as HTMLInputElement
+    ).value;
     if (!q) return;
 
     fetch(
@@ -49,16 +48,15 @@ export const PairReferences = (
         q,
         omit: [...props.references.map((r) => r.id), props.referenceId],
       }),
-    )
-      .then(async (res) =>
-        setFound(
-          (cborDecode(await res.bytes()) as SupportedMapsCBOR[]).map((a) => {
-            const spr = mapToZodObject(a, dbReference);
-            if (!spr.success) throw new Error(spr.error.message);
-            return spr.data;
-          }),
-        )
-      );
+    ).then(async (res) =>
+      setFound(
+        (cborDecode(await res.bytes()) as SupportedMapsCBOR[]).map((a) => {
+          const spr = mapToZodObject(a, dbReference);
+          if (!spr.success) throw new Error(spr.error.message);
+          return spr.data;
+        }),
+      ),
+    );
   };
 
   return (
@@ -75,9 +73,7 @@ export const PairReferences = (
             >
               Unlink
             </button>
-            <a href={"/w/r/" + r.id}>
-              #{String(r.id).padStart(4, "0")}
-            </a>{" "}
+            <a href={"/w/r/" + r.id}>#{String(r.id).padStart(4, "0")}</a>{" "}
             {r.name}
           </p>
         ))}
@@ -94,9 +90,7 @@ export const PairReferences = (
             <button type="button" onClick={pair(r)}>
               Link
             </button>
-            <a href={"/w/r/" + r.id}>
-              #{String(r.id).padStart(4, "0")}
-            </a>{" "}
+            <a href={"/w/r/" + r.id}>#{String(r.id).padStart(4, "0")}</a>{" "}
             {r.name}
           </p>
         ))}

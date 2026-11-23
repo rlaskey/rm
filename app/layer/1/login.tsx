@@ -10,7 +10,7 @@ export const login: Middleware = (ctx, _) => {
   if (ctx.state.session?.user_id) {
     ctx.res = new Response(null, {
       status: 302,
-      headers: { "Location": "/u" },
+      headers: { Location: "/u" },
     });
     return;
   }

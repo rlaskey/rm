@@ -1,7 +1,5 @@
-import { equal } from "@std/assert";
-
 import { cborDecode } from "./cbor-decode.ts";
-import { getSessionId, Session, uaToMatch, userAgent } from "./session.ts";
+import { getSessionId, Session } from "./session.ts";
 import { db } from "./sqlite.ts";
 import { User } from "./user.ts";
 
@@ -14,10 +12,12 @@ export const getState = (reqHeaders: Headers): State | null => {
   const id: string | null = getSessionId(reqHeaders);
   if (id === null) return null;
 
-  const select = db.prepare(
-    "SELECT s.*, u.name, u.write FROM session s " +
-      "LEFT JOIN user u ON s.user_id = u.id WHERE s.id = ?",
-  ).get(id);
+  const select = db
+    .prepare(
+      "SELECT s.*, u.name, u.write FROM session s " +
+        "LEFT JOIN user u ON s.user_id = u.id WHERE s.id = ?",
+    )
+    .get(id);
   if (!select) return null;
 
   const result = {
@@ -29,19 +29,12 @@ export const getState = (reqHeaders: Headers): State | null => {
     },
     user: select.user_id
       ? new Map<string, number | bigint | string | boolean>([
-        ["id", select.user_id as number | bigint],
-        ["name", select.name as string],
-        ["write", Boolean(select.write)],
-      ])
+          ["id", select.user_id as number | bigint],
+          ["name", select.name as string],
+          ["write", Boolean(select.write)],
+        ])
       : null,
   } as State;
-
-  if (
-    !equal(
-      uaToMatch(userAgent(reqHeaders)),
-      result.session?.data.get("userAgentMatch"),
-    )
-  ) return null;
 
   return result;
 };

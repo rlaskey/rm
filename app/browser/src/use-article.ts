@@ -17,10 +17,8 @@ export const useArticle = () => {
     published: null,
     title: null,
   });
-  const [articles, setArticles] = useState<(z.infer<typeof dbArticle>)[]>(
-    [],
-  );
-  const [references, setReferences] = useState<(z.infer<typeof dbReference>)[]>(
+  const [articles, setArticles] = useState<z.infer<typeof dbArticle>[]>([]);
+  const [references, setReferences] = useState<z.infer<typeof dbReference>[]>(
     [],
   );
 

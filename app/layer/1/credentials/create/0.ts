@@ -1,5 +1,3 @@
-import { ulid } from "@std/ulid";
-
 import { type Middleware } from "../../../../src/framework.ts";
 import { type User } from "../../../../src/user.ts";
 
@@ -9,14 +7,14 @@ import { blankSession } from "../../../../src/session.ts";
 import { db } from "../../../../src/sqlite.ts";
 
 export const create0: Middleware = async (ctx, _) => {
-  if (!ctx.state.session) ctx.state.session = blankSession(ctx.req.headers);
+  if (!ctx.state.session) ctx.state.session = blankSession();
   ctx.state.session.data.set("challenge", createChallenge());
 
   const user: User = new Map();
   if (ctx.state.session.user_id) {
-    const existingUser = db.prepare("SELECT * FROM user WHERE id = ?").get(
-      ctx.state.session.user_id,
-    );
+    const existingUser = db
+      .prepare("SELECT * FROM user WHERE id = ?")
+      .get(ctx.state.session.user_id);
     if (!existingUser) {
       ctx.state.session.user_id = null;
       ctx.res = new Response("User not found.", { status: 400 });
@@ -24,7 +22,7 @@ export const create0: Middleware = async (ctx, _) => {
     }
 
     Object.entries(existingUser).forEach((e) =>
-      user.set(e[0], e[1] as bigint | string)
+      user.set(e[0], e[1] as bigint | string),
     );
   } else {
     const requestedName = (await ctx.req.json())["name"];
@@ -33,7 +31,7 @@ export const create0: Middleware = async (ctx, _) => {
       return;
     }
 
-    user.set("id", ulid());
+    user.set("id", crypto.randomUUID());
     user.set("name", requestedName);
     ctx.state.session.data.set("futureUser", user);
   }

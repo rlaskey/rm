@@ -58,13 +58,13 @@ class S3Client {
   ) {}
 
   async send(command: S3Command): Promise<Response> {
-    const bodyEncoded = typeof command.input.Body === "string"
-      ? encoder.encode(command.input.Body)
-      : command.input.Body;
+    const bodyEncoded =
+      typeof command.input.Body === "string"
+        ? encoder.encode(command.input.Body)
+        : command.input.Body;
 
     const url = new URL(
-      this.config.endpoint + "/" + this.bucket + "/" +
-        command.input.Key,
+      this.config.endpoint + "/" + this.bucket + "/" + command.input.Key,
     );
     const datetime = new Date().toISOString().replace(/[:\-]|\.\d{3}/g, "");
     const date = datetime.slice(0, 8);
@@ -73,7 +73,7 @@ class S3Client {
       : await hash("");
 
     const headers: Record<string, string> = {
-      "host": url.host,
+      host: url.host,
       "x-amz-content-sha256": hashedPayload,
       "x-amz-date": datetime,
     };
@@ -81,8 +81,10 @@ class S3Client {
     if (bodyEncoded) headers["content-length"] = bodyEncoded.length.toString();
 
     // 1. Create Canonical Request
-    const canonicalHeaders = Object.keys(headers).sort()
-      .map((k) => `${k}:${headers[k]}\n`).join("");
+    const canonicalHeaders = Object.keys(headers)
+      .sort()
+      .map((k) => `${k}:${headers[k]}\n`)
+      .join("");
     const signedHeaders = Object.keys(headers).sort().join(";");
     const canonicalRequest = [
       command.method,
@@ -113,9 +115,15 @@ class S3Client {
     const signature = (await hmac(kSigning, stringToSign)).toHex();
 
     // 4. Construct Authorization Header
-    headers["Authorization"] = "AWS4-HMAC-SHA256 Credential=" +
-      this.config.credentials.accessKeyId + "/" + credentialScope +
-      ", SignedHeaders=" + signedHeaders + ", Signature=" + signature;
+    headers["Authorization"] =
+      "AWS4-HMAC-SHA256 Credential=" +
+      this.config.credentials.accessKeyId +
+      "/" +
+      credentialScope +
+      ", SignedHeaders=" +
+      signedHeaders +
+      ", Signature=" +
+      signature;
 
     const response = await fetch(url, {
       method: command.method,
@@ -125,7 +133,7 @@ class S3Client {
 
     if (!response.ok) {
       throw new Error(
-        "S3 Error (" + response.status + "): " + await response.text(),
+        "S3 Error (" + response.status + "): " + (await response.text()),
       );
     }
 
@@ -133,22 +141,25 @@ class S3Client {
   }
 }
 
-export const s3 = new S3Client({
-  region: Deno.env.get("AWS_REGION") ?? "auto",
-  endpoint: Deno.env.get("AWS_ENDPOINT_URL") ??
-    "https://nah.r2.cloudflarestorage.com",
-  credentials: {
-    accessKeyId: Deno.env.get("AWS_ACCESS_KEY_ID") ?? "nah",
-    secretAccessKey: Deno.env.get("AWS_SECRET_ACCESS_KEY") ?? "nah",
+export const s3 = new S3Client(
+  {
+    region: process.env.AWS_REGION ?? "auto",
+    endpoint:
+      process.env.AWS_ENDPOINT_URL ?? "https://nah.r2.cloudflarestorage.com",
+    credentials: {
+      accessKeyId: process.env.AWS_ACCESS_KEY_ID ?? "nah",
+      secretAccessKey: process.env.AWS_SECRET_ACCESS_KEY ?? "nah",
+    },
   },
-}, Deno.env.get("S3_BUCKET") ?? "rm");
+  process.env.S3_BUCKET ?? "rm",
+);
 
 const _fromKey = (key: string): bigint => {
   let place = 0n;
   let result = 0n;
-  key.split("/").forEach((digit) =>
-    result += (256n ** place++) * BigInt(digit)
-  );
+  key
+    .split("/")
+    .forEach((digit) => (result += 256n ** place++ * BigInt(digit)));
 
   return result;
 };

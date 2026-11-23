@@ -28,7 +28,7 @@ export const UploadFile = (props: { id: number | bigint }) => {
           body: file,
         });
         if (!response.ok) {
-          errors.push(file.name + ": " + await response.text());
+          errors.push(file.name + ": " + (await response.text()));
         } else success.push(file.name);
       } catch (e) {
         errors.push(e instanceof Error ? e.message : String(e));
@@ -41,10 +41,9 @@ export const UploadFile = (props: { id: number | bigint }) => {
       message.push("Reload page to see results.");
     }
     if (errors.length) message.push("Failures: " + errors.join("; "));
-    setStatus(statusState(
-      message.join(". "),
-      errors.length ? "error" : "info",
-    ));
+    setStatus(
+      statusState(message.join(". "), errors.length ? "error" : "info"),
+    );
 
     setUploading(false);
     input.value = "";
@@ -54,10 +53,14 @@ export const UploadFile = (props: { id: number | bigint }) => {
     <>
       <Status {...status} />
 
-      {uploading ? <p className="warning">🥳 uploading. Please hold.</p> : (
+      {uploading ? (
+        <p className="warning">🥳 uploading. Please hold.</p>
+      ) : (
         <p>
           <input id="upload" type="file" />
-          <button type="button" onClick={upload}>Upload</button>
+          <button type="button" onClick={upload}>
+            Upload
+          </button>
         </p>
       )}
     </>

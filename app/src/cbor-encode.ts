@@ -75,7 +75,7 @@ const encodeBytes = (input: Uint8Array): Uint8Array => {
 };
 
 const encodeString = (input: string): Uint8Array => {
-  const tail = (new TextEncoder()).encode(input);
+  const tail = new TextEncoder().encode(input);
   return joinUint8Arrays([head(3, tail.byteLength), tail]);
 };
 
@@ -110,7 +110,7 @@ const encodeFloat = (_input: number): Uint8Array => {
 };
 
 const encodeNumber = (input: number): Uint8Array => {
-  return (input % 1 === 0) ? encodeInteger(input) : encodeFloat(input);
+  return input % 1 === 0 ? encodeInteger(input) : encodeFloat(input);
 };
 
 export const cborEncode = (input: SupportedCBOR): Uint8Array => {

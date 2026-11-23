@@ -10,21 +10,18 @@ import { cborDecode } from "../../../src/cbor-decode.ts";
 import { dbArticle, mapToZodObject } from "../../src/data.ts";
 import { ArticleA } from "../../src/article.tsx";
 
-export const PairArticles = (
-  props: {
-    articleId: bigint;
-    articles: (z.infer<typeof dbArticle>)[];
-    setArticles: (value: (z.infer<typeof dbArticle>)[]) => void;
-  },
-) => {
-  const [found, setFound] = useState<(z.infer<typeof dbArticle>)[]>([]);
+export const PairArticles = (props: {
+  articleId: bigint;
+  articles: z.infer<typeof dbArticle>[];
+  setArticles: (value: z.infer<typeof dbArticle>[]) => void;
+}) => {
+  const [found, setFound] = useState<z.infer<typeof dbArticle>[]>([]);
 
   const unpair = (articleId: bigint) => () =>
-    fetch(
-      `/3/articlePair?id=${articleId}&id=${props.articleId}`,
-      { method: "DELETE" },
-    ).then(() =>
-      props.setArticles(props.articles.filter((a) => a.id !== articleId))
+    fetch(`/3/articlePair?id=${articleId}&id=${props.articleId}`, {
+      method: "DELETE",
+    }).then(() =>
+      props.setArticles(props.articles.filter((a) => a.id !== articleId)),
     );
 
   const pair = (article: z.infer<typeof dbArticle>) => () =>
@@ -39,9 +36,11 @@ export const PairArticles = (
   const search = (event: Event) => {
     event.preventDefault();
 
-    const q = ((event.currentTarget as HTMLFormElement).elements.namedItem(
-      "search",
-    ) as HTMLInputElement).value;
+    const q = (
+      (event.currentTarget as HTMLFormElement).elements.namedItem(
+        "search",
+      ) as HTMLInputElement
+    ).value;
     if (!q) return;
 
     fetch(
@@ -50,16 +49,15 @@ export const PairArticles = (
         q,
         omit: [...props.articles.map((a) => a.id), props.articleId],
       }),
-    )
-      .then(async (res) =>
-        setFound(
-          (cborDecode(await res.bytes()) as SupportedMapsCBOR[]).map((a) => {
-            const spr = mapToZodObject(a, dbArticle);
-            if (!spr.success) throw new Error(spr.error.message);
-            return spr.data;
-          }),
-        )
-      );
+    ).then(async (res) =>
+      setFound(
+        (cborDecode(await res.bytes()) as SupportedMapsCBOR[]).map((a) => {
+          const spr = mapToZodObject(a, dbArticle);
+          if (!spr.success) throw new Error(spr.error.message);
+          return spr.data;
+        }),
+      ),
+    );
   };
 
   return (

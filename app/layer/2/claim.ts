@@ -9,10 +9,11 @@ export const claim: Middleware = (ctx, _) => {
   }
 
   if (
-    db.prepare("UPDATE user SET write = 1 WHERE id = ?").run(
-      ctx.state.user?.get("id") as bigint ?? null,
-    ).changes != 1
-  ) return;
+    db
+      .prepare("UPDATE user SET write = 1 WHERE id = ?")
+      .run((ctx.state.user?.get("id") as bigint) ?? null).changes != 1
+  )
+    return;
 
-  ctx.res = new Response(null, { status: 302, headers: { "Location": "/u" } });
+  ctx.res = new Response(null, { status: 302, headers: { Location: "/u" } });
 };

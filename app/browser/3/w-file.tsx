@@ -34,18 +34,20 @@ export const WriteFile = () => {
     fetch(
       "/3/file/meta/" + String(BigInt(file.id as number | bigint)),
       cborRequestInit(sprI.data),
-    ).then(async (res) => {
-      if (!res.ok) throw new Error(await res.text() || "Save failed.");
-      const spr = mapToZodObject(
-        cborDecode(await res.bytes()) as SupportedMapsCBOR,
-        dbFile,
-      );
-      if (!spr.success) throw new Error(spr.error.message);
-      setFile(spr.data);
-      setStatus(statusState("Saved."));
-    }).catch((e: Error) => {
-      setStatus(statusState(String(e.message || e), "error"));
-    });
+    )
+      .then(async (res) => {
+        if (!res.ok) throw new Error((await res.text()) || "Save failed.");
+        const spr = mapToZodObject(
+          cborDecode(await res.bytes()) as SupportedMapsCBOR,
+          dbFile,
+        );
+        if (!spr.success) throw new Error(spr.error.message);
+        setFile(spr.data);
+        setStatus(statusState("Saved."));
+      })
+      .catch((e: Error) => {
+        setStatus(statusState(String(e.message || e), "error"));
+      });
   };
 
   return (
@@ -54,11 +56,7 @@ export const WriteFile = () => {
       <form onSubmit={submit}>
         <label>
           Title
-          <input
-            type="text"
-            name="title"
-            value={file.title as string}
-          />
+          <input type="text" name="title" value={file.title as string} />
         </label>
 
         <Status {...status} />

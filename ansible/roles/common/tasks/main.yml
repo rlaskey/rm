@@ -6,7 +6,7 @@
 - become: true
   community.general.pacman:
     name:
-    - deno
+    - bun
     - dnsutils
     - ffmpeg
     - fzf

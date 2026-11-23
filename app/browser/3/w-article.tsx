@@ -34,7 +34,7 @@ export const WriteArticle = () => {
     event.preventDefault();
     setArticle({
       ...article,
-      published: BigInt(Math.floor((new Date()).getTime() / 1000)),
+      published: BigInt(Math.floor(new Date().getTime() / 1000)),
     });
   };
 
@@ -53,19 +53,21 @@ export const WriteArticle = () => {
       fetch(
         "/3/article/" + String(BigInt(article.id as number | bigint)),
         cborRequestInit(sprI.data),
-      ).then(async (res) => {
-        if (!res.ok) throw new Error((await res.text()) || "Save failed.");
-        const sprO = mapToZodObject(
-          cborDecode(await res.bytes()) as SupportedMapsCBOR,
-          uArticle,
-        );
-        if (!sprO.success) throw new Error(sprO.error.message);
+      )
+        .then(async (res) => {
+          if (!res.ok) throw new Error((await res.text()) || "Save failed.");
+          const sprO = mapToZodObject(
+            cborDecode(await res.bytes()) as SupportedMapsCBOR,
+            uArticle,
+          );
+          if (!sprO.success) throw new Error(sprO.error.message);
 
-        setArticle(sprO.data);
-        setStatus(statusState("Saved."));
-      }).catch((e: Error) => {
-        setStatus(statusState(String(e.message || e), "error"));
-      });
+          setArticle(sprO.data);
+          setStatus(statusState("Saved."));
+        })
+        .catch((e: Error) => {
+          setStatus(statusState(String(e.message || e), "error"));
+        });
     } else {
       const sprU = formElementsToZodObject(form.elements, uArticle);
       if (!sprU.success) {
@@ -85,40 +87,33 @@ export const WriteArticle = () => {
 
   return (
     <>
-      <h1>
-        Article{article.id && ": " + String(article.id).padStart(4, "0")}
-      </h1>
+      <h1>Article{article.id && ": " + String(article.id).padStart(4, "0")}</h1>
       <form onSubmit={submit}>
         <textarea required name="words" rows={7}>
           {article.words}
         </textarea>
 
         <div>
-          Published timestamp. {article.published !== null
-            ? (
-              <>
-                <button
-                  type="button"
-                  className="danger"
-                  onClick={publishedNull}
-                >
-                  Clear
-                </button>
-                <input
-                  type="datetime-local"
-                  name="published"
-                  value={epochSecondsToLocal(article.published)}
-                />
-              </>
-            )
-            : (
-              <>
-                <button type="button" onClick={publishedMeow}>
-                  Set
-                </button>
-                <input type="text" name="published" value="" readOnly />
-              </>
-            )}
+          Published timestamp.{" "}
+          {article.published !== null ? (
+            <>
+              <button type="button" className="danger" onClick={publishedNull}>
+                Clear
+              </button>
+              <input
+                type="datetime-local"
+                name="published"
+                value={epochSecondsToLocal(article.published)}
+              />
+            </>
+          ) : (
+            <>
+              <button type="button" onClick={publishedMeow}>
+                Set
+              </button>
+              <input type="text" name="published" value="" readOnly />
+            </>
+          )}
         </div>
 
         <label>

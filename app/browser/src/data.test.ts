@@ -1,25 +1,25 @@
-import { assertEquals } from "@std/assert";
+import { expect, test } from "bun:test";
 
 import type { SupportedCBOR } from "../../src/cbor.ts";
 
 import { dbURL, mapToZodObject } from "./data.ts";
 
-Deno.test("forInsert", () => {
-  assertEquals(
+test("forInsert", () => {
+  expect(
     mapToZodObject(
-      new Map<string, SupportedCBOR>([["id", "https://en.wikipedia.org"], [
-        "reference_id",
-        12,
-      ], ["label", null]]),
+      new Map<string, SupportedCBOR>([
+        ["id", "https://en.wikipedia.org"],
+        ["reference_id", 12],
+        ["label", null],
+      ]),
       dbURL,
     ),
-    {
-      success: true,
-      data: {
-        id: "https://en.wikipedia.org",
-        reference_id: 12n,
-        label: null,
-      },
+  ).toEqual({
+    success: true,
+    data: {
+      id: "https://en.wikipedia.org",
+      reference_id: 12n,
+      label: null,
     },
-  );
+  });
 });

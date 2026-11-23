@@ -1,6 +1,5 @@
-import { deleteCookie, setCookie } from "@std/http";
-
 import { type Middleware } from "../../src/framework.ts";
+import { deleteCookie, setCookie } from "../../src/cookies.ts";
 
 import { cborEncode } from "../../src/cbor-encode.ts";
 import { COOKIE_NAME, timestampSeconds } from "../../src/session.ts";
@@ -28,7 +27,7 @@ export const session: Middleware = async (ctx, next) => {
   }
 
   const now = timestampSeconds();
-  if ((now - ctx.state.session.updated_at) > SECONDS_IN_DAY * 7) {
+  if (now - ctx.state.session.updated_at > SECONDS_IN_DAY * 7) {
     ctx.state.session.updated_at = now;
   }
 
