@@ -73,7 +73,7 @@ const Layer1 = () => {
     <>
       <header>
         <nav>
-          <menu className="inline">
+          <menu className="inline" role="list">
             <li aria-hidden="true">👋</li>
             {attempted && (
               <li>

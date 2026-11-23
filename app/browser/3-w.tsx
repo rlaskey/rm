@@ -17,7 +17,7 @@ const Header = () => {
   return (
     <header>
       <nav>
-        <menu className="inline">
+        <menu className="inline" role="list">
           <li aria-hidden="true">✏️</li>
           <li>
             <a href="/r">Read</a>.

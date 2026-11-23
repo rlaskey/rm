@@ -32,7 +32,7 @@ export const References = (props: {
   return (
     <>
       <h2>References</h2>
-      <menu>
+      <menu role="list">
         {props.references.slice(0, SELECT_LIMIT).map((r) => (
           <li key={r.id}>
             <a href={props.prefix + r.id}>#{String(r.id).padStart(4, "0")}</a>{" "}

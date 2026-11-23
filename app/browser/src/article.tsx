@@ -52,7 +52,7 @@ export const PublishedArticles = (props: {
   return (
     <>
       <h2>Articles: Published</h2>
-      <menu>
+      <menu role="list">
         {props.published.slice(0, SELECT_LIMIT).map((a) => (
           <li key={a.id}>
             <ArticleA prefix={props.prefix} a={a} />
@@ -102,7 +102,7 @@ export const DraftArticles = (props: {
   return (
     <>
       <h2>Articles: Drafts</h2>
-      <menu>
+      <menu role="list">
         {props.drafts.slice(0, SELECT_LIMIT).map((a) => (
           <li key={a.id}>
             <ArticleA prefix={props.prefix} a={a} />

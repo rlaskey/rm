@@ -112,7 +112,7 @@ const User = () => {
     <>
       <header>
         <nav>
-          <menu className="inline">
+          <menu className="inline" role="list">
             <li>😁</li>
             <li>
               <a href="/r">Read</a>.

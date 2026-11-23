@@ -74,7 +74,7 @@ export const Files = (props: {
   return (
     <>
       <h2>Files</h2>
-      <menu>
+      <menu role="list">
         {props.files.slice(0, SELECT_LIMIT).map((f) => (
           <li key={f.id}>
             <a href={props.prefix + f.id}>#{String(f.id).padStart(4, "0")}</a>{" "}
