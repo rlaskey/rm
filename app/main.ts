@@ -24,7 +24,7 @@ const handler = async (req: Request): Promise<Response> => {
   return ctx.res;
 };
 
-const server = Bun.serve({ fetch: handler });
+const server = Bun.serve({ fetch: handler, hostname: "127.0.0.1" });
 
 const shutdown = () => {
   db.close();
