@@ -12,6 +12,7 @@
     - fzf
     - imagemagick
     - iproute2
+    - logrotate
     - libheif
     - nginx
     - nmap
@@ -23,6 +24,11 @@
     - tmux
     - which
     state: present
+
+- become: true
+  ansible.builtin.service:
+    name: logrotate.timer
+    enabled: true
 
 - become: true
   template:
