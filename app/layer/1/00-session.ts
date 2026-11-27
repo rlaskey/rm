@@ -63,7 +63,7 @@ export const session: Middleware = async (ctx, next) => {
     name: COOKIE_NAME,
     value: ctx.state.session.id,
     maxAge: SECONDS_IN_DAY * MAX_AGE_DAYS,
-    sameSite: "Strict",
+    sameSite: "Lax",
     secure: true,
     path: "/",
     httpOnly: true,
