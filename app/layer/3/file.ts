@@ -4,7 +4,7 @@ import { dbFile, mapToZodObject } from "../../browser/src/data.ts";
 
 import { cborDecode } from "../../src/cbor-decode.ts";
 import { cborResponse } from "../../src/cbor-encode.ts";
-import { Middleware } from "../../src/framework.ts";
+import { Context, Middleware } from "../../src/framework.ts";
 import { r400 } from "../../src/response.ts";
 import { PutObjectCommand, s3, toKey } from "../../src/s3.ts";
 import { client } from "../../src/sqlite.ts";
@@ -52,48 +52,68 @@ const process = async (
   return [bytes, contentType];
 };
 
-export const insertFile: Middleware = async (ctx, _) => {
-  const reqBytes = await ctx.req.bytes();
-  const reqContentType = ctx.req.headers.get("content-type");
-  let lastInsertRowId: bigint | undefined;
+const putFileBytes = async (
+  id: bigint | null,
+  reqBytes: Uint8Array<ArrayBuffer>,
+  reqContentType: string | null,
+): Promise<bigint> => {
+  const [bytes, contentType] = await process(reqBytes, reqContentType);
+  const sha256 = new Uint8Array(await crypto.subtle.digest("SHA-256", bytes));
 
   const tx = await client.transaction("write");
   try {
-    const [bytes, contentType] = await process(reqBytes, reqContentType);
-    const sha256 = new Uint8Array(await crypto.subtle.digest("SHA-256", bytes));
-    const { lastInsertRowid } = await tx.execute({
-      sql: "INSERT INTO file (sha256, content_type) VALUES (?, ?)",
-      args: [sha256, contentType],
-    });
-    if (lastInsertRowid === undefined) {
-      throw new Error("INSERT failed.");
+    let targetId = id;
+    if (targetId === null) {
+      const { lastInsertRowid } = await tx.execute({
+        sql: "INSERT INTO file (sha256, content_type) VALUES (?, ?)",
+        args: [sha256, contentType],
+      });
+      if (lastInsertRowid === undefined) {
+        throw new Error("INSERT failed.");
+      }
+      targetId = lastInsertRowid;
+    } else {
+      await tx.execute({
+        sql: "UPDATE file SET sha256 = ?, content_type = ? WHERE id = ?",
+        args: [sha256, contentType, targetId],
+      });
     }
-    lastInsertRowId = lastInsertRowid;
     await s3.send(
       new PutObjectCommand({
-        Key: toKey(lastInsertRowId),
+        Key: toKey(targetId),
         Body: bytes,
       }),
     );
     await tx.commit();
-  } catch (e) {
-    let error = e;
-    while (error instanceof SuppressedError) error = error.suppressed;
-
-    let message =
-      error instanceof Error
-        ? String(error.message)
-        : "Unknown error w/ UPLOAD.";
-    if (message.startsWith("UNIQUE constraint")) {
-      message = "file already uploaded.";
-    }
-    ctx.res = new Response(message, { status: 400 });
-    return;
+    return targetId;
   } finally {
     tx.close();
   }
+};
 
-  ctx.res = cborResponse(lastInsertRowId);
+const uploadError = (ctx: Context, e: unknown): void => {
+  let error = e;
+  while (error instanceof SuppressedError) error = error.suppressed;
+
+  let message =
+    error instanceof Error
+      ? String(error.message)
+      : "Unknown error w/ UPLOAD.";
+  if (message.startsWith("SQLITE_CONSTRAINT: UNIQUE constraint")) {
+    message = "file already uploaded.";
+  }
+  ctx.res = new Response(message, { status: 400 });
+};
+
+export const insertFile: Middleware = async (ctx, _) => {
+  const reqBytes = await ctx.req.bytes();
+  const reqContentType = ctx.req.headers.get("content-type");
+
+  try {
+    ctx.res = cborResponse(await putFileBytes(null, reqBytes, reqContentType));
+  } catch (e) {
+    uploadError(ctx, e);
+  }
 };
 
 export const updateFileBytes: Middleware = async (ctx, _) => {
@@ -103,35 +123,12 @@ export const updateFileBytes: Middleware = async (ctx, _) => {
   const reqBytes = await ctx.req.bytes();
   const reqContentType = ctx.req.headers.get("content-type");
 
-  const tx = await client.transaction("write");
   try {
-    const sha256 = new Uint8Array(
-      await crypto.subtle.digest("SHA-256", reqBytes),
-    );
-    await tx.execute({
-      sql: "UPDATE file SET sha256 = ?, content_type = ? WHERE id = ?",
-      args: [sha256, reqContentType, id],
-    });
-    await s3.send(new PutObjectCommand({ Key: toKey(id), Body: reqBytes }));
-    await tx.commit();
+    await putFileBytes(id, reqBytes, reqContentType);
+    ctx.res = cborResponse(null);
   } catch (e) {
-    let error = e;
-    while (error instanceof SuppressedError) error = error.suppressed;
-
-    let message =
-      error instanceof Error
-        ? String(error.message)
-        : "Unknown error w/ UPLOAD.";
-    if (message.startsWith("UNIQUE constraint")) {
-      message = "file already uploaded.";
-    }
-    ctx.res = new Response(message, { status: 400 });
-    return;
-  } finally {
-    tx.close();
+    uploadError(ctx, e);
   }
-
-  ctx.res = cborResponse(null);
 };
 
 export const updateFileMeta: Middleware = async (ctx, _) => {
