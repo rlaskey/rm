@@ -14,7 +14,9 @@ import { getId } from "../../src/url.ts";
 const MAGICK_ARGS = [
   "-",
   "-resize",
-  ">2048x>2048",
+  "2048x2048^>",
+  "-resize",
+  "8192x8192>",
   "+profile",
   "!icc,*",
   "avif:-",
