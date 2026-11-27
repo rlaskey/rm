@@ -2,7 +2,9 @@ import { joinUint8Arrays } from "./bytes.ts";
 
 export interface Passkey {
   id: Base64URLString;
-  alg: COSEAlgorithmIdentifier;
+  // `bigint` when read from SQLite (intMode: "bigint"), `number` from the
+  // browser's RegistrationResponseJSON.
+  alg: COSEAlgorithmIdentifier | bigint;
   public_key: Base64URLString;
   user_id: number | bigint;
 }

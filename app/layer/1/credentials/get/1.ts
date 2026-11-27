@@ -39,7 +39,7 @@ export const get1: Middleware = async (ctx, _) => {
 
   // https://w3c.github.io/webauthn/#sctn-verifying-assertion
 
-  const algorithm = ALGORITHMS.get(passkey.alg);
+  const algorithm = ALGORITHMS.get(Number(passkey.alg));
   if (typeof algorithm === "undefined") {
     ctx.res = new Response("Bad algorithm in a stored Passkey.", {
       status: 400,
