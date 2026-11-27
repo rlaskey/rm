@@ -3,15 +3,17 @@ import { type User } from "../../src/user.ts";
 
 import { cborDecode } from "../../src/cbor-decode.ts";
 import { cborResponse } from "../../src/cbor-encode.ts";
-import { db } from "../../src/sqlite.ts";
+import { client } from "../../src/sqlite.ts";
 
-const select = (
+const select = async (
   user: User,
-): { name: string; write: boolean; passkeys: string[] } => {
-  const passkeys = db
-    .prepare("SELECT id FROM passkey WHERE user_id = ?")
-    .all(user.get("id") as string)
-    .map((e) => e.id as string);
+): Promise<{ name: string; write: boolean; passkeys: string[] }> => {
+  const passkeys = (
+    await client.execute({
+      sql: "SELECT id FROM passkey WHERE user_id = ?",
+      args: [user.get("id") as bigint],
+    })
+  ).rows.map((e) => e.id as string);
   return {
     name: user.get("name") as string,
     write: user.get("write") as boolean,
@@ -19,8 +21,8 @@ const select = (
   };
 };
 
-export const meGET: Middleware = (ctx, _) => {
-  ctx.res = cborResponse(select(ctx.state.user!));
+export const meGET: Middleware = async (ctx, _) => {
+  ctx.res = cborResponse(await select(ctx.state.user!));
 };
 
 export const mePOST: Middleware = async (ctx, _) => {
@@ -35,9 +37,12 @@ export const mePOST: Middleware = async (ctx, _) => {
   const name = req.get("name") as string;
   if (name) {
     if (
-      db
-        .prepare("UPDATE user SET name = ? WHERE id = ?")
-        .run(name, ctx.state.user?.get("id") as string).changes != 1
+      (
+        await client.execute({
+          sql: "UPDATE user SET name = ? WHERE id = ?",
+          args: [name, ctx.state.user?.get("id") as bigint],
+        })
+      ).rowsAffected != 1
     ) {
       ctx.res = new Response("Name not saved.", { status: 500 });
       return;

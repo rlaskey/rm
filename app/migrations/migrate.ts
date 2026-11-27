@@ -1,15 +1,15 @@
 import { readFileSync } from "node:fs";
 
-import { db } from "../src/sqlite.ts";
+import { client } from "../src/sqlite.ts";
 
-db.run(
+await client.execute(
   "CREATE TABLE IF NOT EXISTS migrate " +
     "(id INTEGER PRIMARY KEY, v INTEGER NOT NULL);",
 );
-db.run("INSERT OR IGNORE INTO migrate VALUES (1, -1);");
-let version = (db.prepare("SELECT v FROM migrate WHERE id = 1").get() || {
-  v: -1,
-})["v"] as number;
+await client.execute("INSERT OR IGNORE INTO migrate VALUES (1, -1);");
+let version = Number(
+  (await client.execute("SELECT v FROM migrate WHERE id = 1")).rows[0]?.v ?? -1,
+);
 
 const up = (id: number): string | null => {
   const path = String(id).padStart(5, "0");
@@ -24,8 +24,11 @@ const up = (id: number): string | null => {
 let current;
 while ((current = up(++version))) {
   console.log(`Running migration: ${version}.`);
-  db.run(current);
-  db.run(`UPDATE migrate SET v = ${version} WHERE id = 1`);
+  // executeMultiple runs the script as-is; the scripts manage their own
+  // BEGIN/COMMIT and PRAGMA foreign_keys toggling. Local file: URLs only --
+  // against a remote database, split each script into batch() statements.
+  await client.executeMultiple(current);
+  await client.execute(`UPDATE migrate SET v = ${version} WHERE id = 1`);
 }
 
-db.close();
+client.close();

@@ -1,4 +1,4 @@
-import { joinUint8Arrays } from "./bytes.ts";
+import { asUint8Array, joinUint8Arrays } from "./bytes.ts";
 import {
   type SupportedArraysCBOR,
   type SupportedCBOR,
@@ -70,8 +70,8 @@ const encodeArray = (input: SupportedArraysCBOR): Uint8Array => {
   return joinUint8Arrays(result);
 };
 
-const encodeBytes = (input: Uint8Array): Uint8Array => {
-  return joinUint8Arrays([head(2, input.byteLength), input]);
+const encodeBytes = (input: Uint8Array | ArrayBuffer): Uint8Array => {
+  return joinUint8Arrays([head(2, input.byteLength), asUint8Array(input)]);
 };
 
 const encodeString = (input: string): Uint8Array => {
@@ -127,7 +127,8 @@ export const cborEncode = (input: SupportedCBOR): Uint8Array => {
       if (input === null) return encodeNull();
       if (Array.isArray(input)) return encodeArray(input);
       if (input instanceof Map) return encodeMap(input);
-      if (input instanceof Uint8Array) return encodeBytes(input);
+      if (input instanceof Uint8Array || input instanceof ArrayBuffer)
+        return encodeBytes(input);
       return encodeObject(input);
     case "undefined":
       return encodeUndefined();

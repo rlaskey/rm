@@ -4,7 +4,9 @@ import { cborDecode } from "../../src/cbor-decode.ts";
 import { cborResponse } from "../../src/cbor-encode.ts";
 import type { Middleware } from "../../src/framework.ts";
 import { r400 } from "../../src/response.ts";
-import { db } from "../../src/sqlite.ts";
+import type { InValue } from "@libsql/client";
+
+import { client } from "../../src/sqlite.ts";
 import { getId } from "../../src/url.ts";
 
 const Article = dbArticle.omit({ id: true });
@@ -22,18 +24,18 @@ export const insertArticle: Middleware = async (ctx, _) => {
     return;
   }
 
-  const src = db
-    .prepare(
+  const src = await client.execute({
+    sql:
       "INSERT INTO article (" +
-        Object.keys(spr.data).join(", ") +
-        ") VALUES (" +
-        Object.keys(spr.data)
-          .map((_) => "?")
-          .join(", ") +
-        ")",
-    )
-    .run(...Object.values(spr.data));
-  if (src.changes != 1) {
+      Object.keys(spr.data).join(", ") +
+      ") VALUES (" +
+      Object.keys(spr.data)
+        .map((_) => "?")
+        .join(", ") +
+      ")",
+    args: Object.values(spr.data) as InValue[],
+  });
+  if (src.lastInsertRowid === undefined) {
     ctx.res = new Response("INSERT failed.", { status: 500 });
     return;
   }
@@ -58,21 +60,25 @@ export const updateArticle: Middleware = async (ctx, _) => {
   }
 
   if (
-    db
-      .prepare(
-        "UPDATE article SET " +
+    (
+      await client.execute({
+        sql:
+          "UPDATE article SET " +
           Object.keys(spr.data)
             .map((k) => k + " = ?")
             .join(", ") +
           " WHERE id = ?",
-      )
-      .run(...Object.values(spr.data), id).changes != 1
+        args: [...(Object.values(spr.data) as InValue[]), id],
+      })
+    ).rowsAffected != 1
   ) {
     ctx.res = new Response("UPDATE failed.", { status: 500 });
     return;
   }
 
-  const select = db.prepare("SELECT * FROM article WHERE id = ?").get(id);
+  const select = (
+    await client.execute("SELECT * FROM article WHERE id = ?", [id])
+  ).rows[0];
   if (!select) {
     ctx.res = new Response("SELECT failed.", { status: 500 });
     return;

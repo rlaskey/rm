@@ -1,6 +1,6 @@
 import { cborDecode } from "./cbor-decode.ts";
 import { getSessionId, Session } from "./session.ts";
-import { db } from "./sqlite.ts";
+import { client } from "./sqlite.ts";
 import { User } from "./user.ts";
 
 export interface State {
@@ -8,23 +8,25 @@ export interface State {
   user: User | undefined;
 }
 
-export const getState = (reqHeaders: Headers): State | null => {
+export const getState = async (reqHeaders: Headers): Promise<State | null> => {
   const id: string | null = getSessionId(reqHeaders);
   if (id === null) return null;
 
-  const select = db
-    .prepare(
-      "SELECT s.*, u.name, u.write FROM session s " +
+  const select = (
+    await client.execute({
+      sql:
+        "SELECT s.*, u.name, u.write FROM session s " +
         "LEFT JOIN user u ON s.user_id = u.id WHERE s.id = ?",
-    )
-    .get(id);
+      args: [id],
+    })
+  ).rows[0];
   if (!select) return null;
 
   const result = {
     session: {
       id: select.id as string,
-      data: cborDecode(select.data as Uint8Array),
-      updated_at: select.updated_at as number,
+      data: cborDecode(select.data as ArrayBuffer),
+      updated_at: Number(select.updated_at),
       user_id: select.user_id as number | bigint | null,
     },
     user: select.user_id

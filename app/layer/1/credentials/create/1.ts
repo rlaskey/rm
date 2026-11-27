@@ -10,7 +10,7 @@ import {
   insertPasskey,
   publicKeyCredentialCreationOptions,
 } from "../../../../src/passkeys-site.ts";
-import { db } from "../../../../src/sqlite.ts";
+import { client } from "../../../../src/sqlite.ts";
 
 export const create1: Middleware = async (ctx, _) => {
   if (!ctx.state.session) {
@@ -33,9 +33,12 @@ export const create1: Middleware = async (ctx, _) => {
       ctx.res = new Response("User not found.", { status: 400 });
       return;
     }
-    const existingUser = db
-      .prepare("SELECT * FROM user WHERE id = ?")
-      .get(ctx.state.session.user_id);
+    const existingUser = (
+      await client.execute({
+        sql: "SELECT * FROM user WHERE id = ?",
+        args: [ctx.state.session.user_id],
+      })
+    ).rows[0];
     if (!existingUser) {
       ctx.state.session.user_id = null;
       ctx.res = new Response("User not found.", { status: 400 });
@@ -125,10 +128,11 @@ export const create1: Middleware = async (ctx, _) => {
 
   // Convert a FutureUser to a User.
   if (typeof user.get("id") === "string") {
-    const src = db
-      .prepare("INSERT INTO user (name) VALUES (?)")
-      .run(user.get("name") as string);
-    if (src.changes != 1) {
+    const src = await client.execute({
+      sql: "INSERT INTO user (name) VALUES (?)",
+      args: [user.get("name") as string],
+    });
+    if (src.lastInsertRowid === undefined) {
       ctx.res = new Response("Failed to save User.", { status: 400 });
       return;
     }
@@ -136,12 +140,12 @@ export const create1: Middleware = async (ctx, _) => {
   }
 
   if (
-    insertPasskey({
+    (await insertPasskey({
       id: publicKeyCredentialJSON.id,
       alg: publicKeyCredentialJSON.response.publicKeyAlgorithm,
       public_key: publicKeyCredentialJSON.response.publicKey!,
       user_id: user.get("id") as number | bigint,
-    }) != 1
+    })) != 1
   ) {
     ctx.res = new Response("Failed to save Passkey.", { status: 400 });
     return;

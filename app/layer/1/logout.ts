@@ -1,10 +1,13 @@
 import { type Middleware } from "../../src/framework.ts";
 
-import { db } from "../../src/sqlite.ts";
+import { client } from "../../src/sqlite.ts";
 
-export const logout: Middleware = (ctx, _) => {
+export const logout: Middleware = async (ctx, _) => {
   if (ctx.state.session) {
-    db.prepare("DELETE FROM session WHERE id = ?").run(ctx.state.session.id);
+    await client.execute({
+      sql: "DELETE FROM session WHERE id = ?",
+      args: [ctx.state.session.id],
+    });
   }
 
   // Set up the session middleware to delete the cookie.

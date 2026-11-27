@@ -4,7 +4,9 @@ import { cborDecode } from "../../src/cbor-decode.ts";
 import { cborResponse } from "../../src/cbor-encode.ts";
 import type { Middleware } from "../../src/framework.ts";
 import { r400 } from "../../src/response.ts";
-import { db } from "../../src/sqlite.ts";
+import type { InValue } from "@libsql/client";
+
+import { client } from "../../src/sqlite.ts";
 import { getId } from "../../src/url.ts";
 
 const Reference = dbReference.omit({ id: true });
@@ -22,18 +24,18 @@ export const insertReference: Middleware = async (ctx, _) => {
     return;
   }
 
-  const src = db
-    .prepare(
+  const src = await client.execute({
+    sql:
       "INSERT INTO reference (" +
-        Object.keys(spr.data).join(", ") +
-        ") VALUES (" +
-        Object.keys(spr.data)
-          .map((_) => "?")
-          .join(", ") +
-        ")",
-    )
-    .run(...Object.values(spr.data));
-  if (src.changes != 1) {
+      Object.keys(spr.data).join(", ") +
+      ") VALUES (" +
+      Object.keys(spr.data)
+        .map((_) => "?")
+        .join(", ") +
+      ")",
+    args: Object.values(spr.data) as InValue[],
+  });
+  if (src.lastInsertRowid === undefined) {
     ctx.res = new Response("INSERT failed.", { status: 500 });
     return;
   }
@@ -57,21 +59,23 @@ export const updateReference: Middleware = async (ctx, _) => {
     return;
   }
 
-  const src = db
-    .prepare(
+  const src = await client.execute({
+    sql:
       "UPDATE reference SET " +
-        Object.keys(spr.data)
-          .map((e) => e + " = ?")
-          .join(", ") +
-        " WHERE id = ?",
-    )
-    .run(...Object.values(spr.data), id);
-  if (src.changes != 1) {
+      Object.keys(spr.data)
+        .map((e) => e + " = ?")
+        .join(", ") +
+      " WHERE id = ?",
+    args: [...(Object.values(spr.data) as InValue[]), id],
+  });
+  if (src.rowsAffected != 1) {
     ctx.res = new Response("UPDATE failed.", { status: 500 });
     return;
   }
 
-  const select = db.prepare("SELECT * FROM reference WHERE id = ?").get(id);
+  const select = (
+    await client.execute("SELECT * FROM reference WHERE id = ?", [id])
+  ).rows[0];
   if (!select) {
     ctx.res = new Response("SELECT failed.", { status: 500 });
     return;

@@ -1,28 +1,26 @@
 import { type Middleware } from "../../src/framework.ts";
 import { deleteCookie, setCookie } from "../../src/cookies.ts";
 
+import { equalUint8Arrays } from "../../src/bytes.ts";
 import { cborEncode } from "../../src/cbor-encode.ts";
 import { COOKIE_NAME, timestampSeconds } from "../../src/session.ts";
-import { db } from "../../src/sqlite.ts";
+import { client } from "../../src/sqlite.ts";
 import { getState } from "../../src/state.ts";
 
 const SECONDS_IN_DAY = 60 * 60 * 24;
 const MAX_AGE_DAYS = 79;
-
-const replacer = (_: string, v: object) => {
-  if (v instanceof Map) return Array.from(v.entries());
-  return v;
-};
+const NO_SESSION = cborEncode(undefined);
 
 export const session: Middleware = async (ctx, next) => {
-  Object.assign(ctx.state, getState(ctx.req.headers));
-  const start = JSON.stringify(ctx.state.session, replacer);
+  Object.assign(ctx.state, await getState(ctx.req.headers));
+  const start = cborEncode(ctx.state.session);
 
   await next();
 
   if (!ctx.state.session) {
     // We had a session at the start of the request. Now, we don't.
-    if (start) deleteCookie(ctx.res.headers, COOKIE_NAME);
+    if (!equalUint8Arrays(start, NO_SESSION))
+      deleteCookie(ctx.res.headers, COOKIE_NAME);
     return;
   }
 
@@ -31,29 +29,34 @@ export const session: Middleware = async (ctx, next) => {
     ctx.state.session.updated_at = now;
   }
 
-  if (JSON.stringify(ctx.state.session, replacer) === start) {
+  if (equalUint8Arrays(cborEncode(ctx.state.session), start)) {
     return;
   }
 
   const data = cborEncode(ctx.state.session.data);
 
-  if (!start) {
-    db.prepare("INSERT INTO session VALUES (?, ?, ?, ?)").run(
-      ctx.state.session.id,
-      data,
-      ctx.state.session.updated_at,
-      ctx.state.session.user_id,
-    );
+  if (equalUint8Arrays(start, NO_SESSION)) {
+    await client.execute({
+      sql: "INSERT INTO session VALUES (?, ?, ?, ?)",
+      args: [
+        ctx.state.session.id,
+        data,
+        ctx.state.session.updated_at,
+        ctx.state.session.user_id,
+      ],
+    });
   } else {
-    db.prepare(
-      "UPDATE session SET data = ?, updated_at = ?, user_id = ? " +
+    await client.execute({
+      sql:
+        "UPDATE session SET data = ?, updated_at = ?, user_id = ? " +
         "WHERE id = ?",
-    ).run(
-      data,
-      ctx.state.session.updated_at,
-      ctx.state.session.user_id,
-      ctx.state.session.id,
-    );
+      args: [
+        data,
+        ctx.state.session.updated_at,
+        ctx.state.session.user_id,
+        ctx.state.session.id,
+      ],
+    });
   }
 
   setCookie(ctx.res.headers, {

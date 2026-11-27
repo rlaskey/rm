@@ -11,7 +11,7 @@ import {
   deletePasskey,
   publicKeyCredentialRequestOptionsJSON,
 } from "../../../../src/passkeys-site.ts";
-import { db } from "../../../../src/sqlite.ts";
+import { client } from "../../../../src/sqlite.ts";
 
 export const get1: Middleware = async (ctx, _) => {
   if (!ctx.state.session) {
@@ -26,9 +26,12 @@ export const get1: Middleware = async (ctx, _) => {
 
   const publicKeyCredentialJSON: AuthenticationResponseJSON =
     await ctx.req.json();
-  const passkey = db
-    .prepare("SELECT * FROM passkey WHERE id = ?")
-    .get(publicKeyCredentialJSON.id) as Passkey | undefined;
+  const passkey = (
+    await client.execute({
+      sql: "SELECT * FROM passkey WHERE id = ?",
+      args: [publicKeyCredentialJSON.id],
+    })
+  ).rows[0] as unknown as Passkey | undefined;
   if (!passkey) {
     ctx.res = new Response("Passkey not found.", { status: 400 });
     return;
@@ -56,11 +59,14 @@ export const get1: Middleware = async (ctx, _) => {
     return;
   }
 
-  const user = db
-    .prepare("SELECT * FROM user WHERE id = ?")
-    .get(passkey.user_id) as object | undefined;
+  const user = (
+    await client.execute({
+      sql: "SELECT * FROM user WHERE id = ?",
+      args: [passkey.user_id],
+    })
+  ).rows[0] as object | undefined;
   if (!user) {
-    deletePasskey(publicKeyCredentialJSON.id);
+    await deletePasskey(publicKeyCredentialJSON.id);
     ctx.res = new Response(
       "Passkey was associated with a deleted User account.",
       { status: 400 },

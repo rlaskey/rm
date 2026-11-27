@@ -1,3 +1,4 @@
+import { asUint8Array } from "./bytes.ts";
 import {
   type AdditionalInformation31,
   type SupportedArraysCBOR,
@@ -229,7 +230,8 @@ const decodeItem = (
   }
 };
 
-export const cborDecode = (uint8Array: Uint8Array): SupportedCBOR => {
+export const cborDecode = (input: Uint8Array | ArrayBuffer): SupportedCBOR => {
+  const uint8Array = asUint8Array(input);
   const [result, end] = decodeItem(uint8Array, 0);
   if (end !== uint8Array.byteLength) throw Error("Something is off.");
   return result;

@@ -4,7 +4,7 @@ import { type User } from "../../../../src/user.ts";
 import { createChallenge } from "../../../../src/passkeys.ts";
 import { publicKeyCredentialCreationOptions } from "../../../../src/passkeys-site.ts";
 import { blankSession } from "../../../../src/session.ts";
-import { db } from "../../../../src/sqlite.ts";
+import { client } from "../../../../src/sqlite.ts";
 
 export const create0: Middleware = async (ctx, _) => {
   if (!ctx.state.session) ctx.state.session = blankSession();
@@ -12,9 +12,12 @@ export const create0: Middleware = async (ctx, _) => {
 
   const user: User = new Map();
   if (ctx.state.session.user_id) {
-    const existingUser = db
-      .prepare("SELECT * FROM user WHERE id = ?")
-      .get(ctx.state.session.user_id);
+    const existingUser = (
+      await client.execute({
+        sql: "SELECT * FROM user WHERE id = ?",
+        args: [ctx.state.session.user_id],
+      })
+    ).rows[0];
     if (!existingUser) {
       ctx.state.session.user_id = null;
       ctx.res = new Response("User not found.", { status: 400 });

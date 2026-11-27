@@ -6,7 +6,7 @@ import { zeroPad } from "../../browser/src/dates.ts";
 
 import { joinUint8Arrays } from "../../src/bytes.ts";
 import { type Middleware } from "../../src/framework.ts";
-import { db } from "../../src/sqlite.ts";
+import { client } from "../../src/sqlite.ts";
 import { PutObjectCommand, s3 } from "../../src/s3.ts";
 
 const gz = async (path: string): Promise<Uint8Array> => {
@@ -36,7 +36,7 @@ export const doBackup: Middleware = async (ctx, _) => {
   const t = join(dir, "db.sqlite");
 
   try {
-    db.run(`VACUUM INTO '${t}'`);
+    await client.execute(`VACUUM INTO '${t}'`);
 
     const now = new Date();
     const Key =

@@ -3,39 +3,42 @@ import { type Middleware } from "../../src/framework.ts";
 
 import { cborDecode } from "../../src/cbor-decode.ts";
 import { cborResponse } from "../../src/cbor-encode.ts";
-import { db } from "../../src/sqlite.ts";
+import { client } from "../../src/sqlite.ts";
 import { getId } from "../../src/url.ts";
 
-export const getReference: Middleware = (ctx, _) => {
+export const getReference: Middleware = async (ctx, _) => {
   const id = getId("/2/reference/", ctx.url.pathname);
   if (!id) return;
 
-  const r = db.prepare("SELECT * FROM reference WHERE id = ?").get(id);
+  const r = (await client.execute("SELECT * FROM reference WHERE id = ?", [id]))
+    .rows[0];
   if (!r) return;
   const result: Record<string, unknown> = { reference: r };
 
-  result.labeledURLs = db
-    .prepare("SELECT * FROM url WHERE reference_id = ?")
-    .all(id);
+  result.labeledURLs = (
+    await client.execute("SELECT * FROM url WHERE reference_id = ?", [id])
+  ).rows;
 
   // MAYBE: WHERE published IS NOT NULL
-  result.articles = db
-    .prepare(
+  result.articles = (
+    await client.execute(
       "SELECT a.id, a.published, a.title, SUBSTR(a.words, 0, 43) AS words " +
         "FROM article_reference ar " +
         "JOIN article a ON ar.article_id = a.id WHERE ar.reference_id = ?",
+      [id],
     )
-    .all(id);
+  ).rows;
 
-  result.references = db
-    .prepare(
+  result.references = (
+    await client.execute(
       "SELECT r.* FROM reference_pair rp " +
         "JOIN reference r ON r.id = rp.a WHERE rp.b = ? " +
         "UNION ALL " +
         "SELECT r.* FROM reference_pair rp " +
         "JOIN reference r ON r.id = rp.b WHERE rp.a = ?",
+      [id, id],
     )
-    .all(id, id);
+  ).rows;
 
   ctx.res = cborResponse(result);
 };
@@ -50,11 +53,12 @@ export const searchReference: Middleware = async (ctx, _) => {
 
   const w = (("%" + req.get("q")) as string) + "%";
   ctx.res = cborResponse(
-    db
-      .prepare(
+    (
+      await client.execute(
         "SELECT id, name FROM reference WHERE (id = ? OR name LIKE ?)" +
           omitSQL,
+        [req.get("q") as string, w, ...omit],
       )
-      .all(req.get("q") as string, w, ...omit),
+    ).rows,
   );
 };

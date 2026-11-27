@@ -7,19 +7,22 @@ import type { Middleware } from "../../src/framework.ts";
 import { cborDecode } from "../../src/cbor-decode.ts";
 import { cborResponse } from "../../src/cbor-encode.ts";
 import { r400 } from "../../src/response.ts";
-import { db } from "../../src/sqlite.ts";
+import { client } from "../../src/sqlite.ts";
 
 const pURL = dbURL.partial({ id: true });
 
-const save = (
+const save = async (
   record: z.infer<typeof pURL>,
   originalId: string | undefined,
-): string | undefined => {
+): Promise<string | undefined> => {
   if (record.id && record.id === originalId) {
     if (
-      db
-        .prepare("UPDATE url SET label = ? WHERE id = ?")
-        .run(record.label || null, originalId).changes != 1
+      (
+        await client.execute({
+          sql: "UPDATE url SET label = ? WHERE id = ?",
+          args: [record.label || null, originalId],
+        })
+      ).rowsAffected != 1
     )
       return "UPDATE failed.";
 
@@ -29,17 +32,19 @@ const save = (
   if (record.id && record.id !== originalId) {
     try {
       if (
-        db
-          .prepare(
-            "INSERT INTO url (" +
+        (
+          await client.execute({
+            sql:
+              "INSERT INTO url (" +
               Object.keys(record).join(", ") +
               ") VALUES (" +
               Object.keys(record)
                 .map((_) => "?")
                 .join(", ") +
               ")",
-          )
-          .run(...Object.values(record)).changes != 1
+            args: Object.values(record),
+          })
+        ).rowsAffected != 1
       )
         return "INSERT failed.";
     } catch (error) {
@@ -52,7 +57,14 @@ const save = (
   }
 
   if (originalId && record.id !== originalId) {
-    if (db.prepare("DELETE FROM url WHERE id = ?").run(originalId).changes != 1)
+    if (
+      (
+        await client.execute({
+          sql: "DELETE FROM url WHERE id = ?",
+          args: [originalId],
+        })
+      ).rowsAffected != 1
+    )
       return "DELETE failed.";
   }
 };
@@ -70,15 +82,18 @@ export const postURL: Middleware = async (ctx, _) => {
     return;
   }
 
-  const error = save(spr.data, r.get("originalId") as string | undefined);
+  const error = await save(spr.data, r.get("originalId") as string | undefined);
   if (error) {
     ctx.res = new Response(error, { status: 400 });
     return;
   }
 
   ctx.res = cborResponse(
-    db
-      .prepare("SELECT * FROM url WHERE reference_id = ?")
-      .all(spr.data.reference_id),
+    (
+      await client.execute({
+        sql: "SELECT * FROM url WHERE reference_id = ?",
+        args: [spr.data.reference_id],
+      })
+    ).rows,
   );
 };

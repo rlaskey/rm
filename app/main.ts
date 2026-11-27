@@ -1,5 +1,5 @@
 import { Context } from "./src/framework.ts";
-import { db } from "./src/sqlite.ts";
+import { client } from "./src/sqlite.ts";
 
 import { layer0 } from "./layer/0/main.ts";
 import { UPLOAD_BYTES_LIMIT } from "./browser/src/site.ts";
@@ -27,7 +27,7 @@ const handler = async (req: Request): Promise<Response> => {
 const server = Bun.serve({ fetch: handler, hostname: "127.0.0.1" });
 
 const shutdown = () => {
-  db.close();
+  client.close();
   server.stop();
   process.exit(0);
 };

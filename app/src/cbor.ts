@@ -10,6 +10,7 @@ export type SupportedCBOR =
   | number
   | bigint
   | Uint8Array
+  | ArrayBuffer
   | string
   | object
   | SupportedMajorType7;
