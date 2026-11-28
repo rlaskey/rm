@@ -1,0 +1,5 @@
+FROM oven/bun:alpine
+RUN apk add libheif-aom imagemagick
+COPY --chmod='u=rwX,go=rX' . .
+RUN bun install && bun run build
+USER bun

@@ -1,0 +1,7 @@
+.containerignore
+.git
+.gitignore
+*.md
+/dist
+Containerfile
+node_modules
